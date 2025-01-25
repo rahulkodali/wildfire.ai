@@ -66,7 +66,7 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading }) {
     try {
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/satellite-v9',
+        style: 'mapbox://styles/mapbox/satellite-streets-v12',  // Use satellite style with streets/labels
         center: [-118.2437, 34.0522], // Los Angeles
         zoom: 10,
         preserveDrawingBuffer: true,
@@ -78,6 +78,22 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading }) {
       mapInstance.on('load', () => {
         map.current = mapInstance;
         setIsMapLoaded(true);
+
+        // Hide all labels except city names
+        const layers = mapInstance.getStyle().layers;
+        for (const layer of layers) {
+          if (layer.type === 'symbol') {
+            if (!layer.id.includes('city') && !layer.id.includes('settlement')) {
+              mapInstance.setLayoutProperty(layer.id, 'visibility', 'none');
+            }
+          }
+        }
+
+        // Adjust city label visibility
+        mapInstance.setLayoutProperty('settlement-major-label', 'text-size', 14);
+        mapInstance.setLayoutProperty('settlement-major-label', 'text-color', '#ffffff');
+        mapInstance.setLayoutProperty('settlement-major-label', 'text-halo-color', 'rgba(0, 0, 0, 0.75)');
+        mapInstance.setLayoutProperty('settlement-major-label', 'text-halo-width', 2);
       });
 
       // Add click handler
@@ -106,6 +122,12 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading }) {
 
       // Add navigation controls
       mapInstance.addControl(new mapboxgl.NavigationControl());
+
+      // Add scale control
+      mapInstance.addControl(new mapboxgl.ScaleControl({
+        maxWidth: 100,
+        unit: 'imperial'
+      }));
 
       // Handle WebGL context loss
       mapInstance.on('webglcontextlost', (e) => {
@@ -160,7 +182,7 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading }) {
           top: '10px',
           left: '50%',
           transform: 'translateX(-50%)',
-          backgroundColor: 'var(--gray-12)',
+          backgroundColor: 'var(--gray-3)',
           color: 'white',
           padding: '8px 16px',
           borderRadius: '4px',

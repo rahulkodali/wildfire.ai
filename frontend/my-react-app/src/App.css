@@ -29,20 +29,40 @@ a[href] [data-radix-card] {
   cursor: pointer;
 }
 
-/* Search input styling */
-.rt-TextFieldRoot {
-  width: 100%;
+/* Custom Input Styling */
+.custom-input {
+  background-color: var(--gray-3);
+  border: 1px solid var(--gray-6);
+  color: var(--gray-12);
+  border-radius: var(--radius-2);
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: all 0.2s ease;
 }
 
-.rt-TextFieldInput {
-  background-color: var(--gray-3) !important;
-  border-color: var(--gray-6) !important;
-  color: var(--gray-12) !important;
+.custom-input:focus {
+  outline: none;
+  border-color: var(--tomato-8);
+  box-shadow: 0 0 0 1px var(--tomato-8);
 }
 
-.rt-TextFieldInput:focus {
-  border-color: var(--tomato-8) !important;
-  outline-color: var(--tomato-8) !important;
+.custom-input::placeholder {
+  color: var(--gray-8);
+}
+
+.custom-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.location-input {
+  min-width: 300px;
+  flex: 1;
+}
+
+.radius-input {
+  width: 100px;
 }
 
 /* Nested card (routing info) styling */
