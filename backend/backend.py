@@ -13,15 +13,20 @@ def route():
     # schema POINT A, POINT B, COORDS OF POLYGON
     data = request.json
 
+    pointA = data['point A']
+    pointB = data['point B']
+    polygon = data['polygon']
+
+
+
     # iterate/map thru and give a list of coods
-    coordinates = None
 
     body = {
-        "coordinates": [[a[0], a[1]], [b[0], b[1]]],
+        "coordinates": [[pointA[0], pointA[1]], [pointB[0], pointB[1]]],
         "options": {
             "avoid_polygons": {
                 "type": "Polygon",
-                "coordinates": [coordinates],
+                "coordinates": [polygon],
             }
         },
     }
