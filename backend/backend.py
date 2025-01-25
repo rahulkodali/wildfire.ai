@@ -1,7 +1,7 @@
-from flask import Flask
-import requests
+from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 import os
+import requests
 
 app = Flask(__name__)
 
@@ -33,7 +33,7 @@ def route():
 
     headers = {
         "Accept": "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
-        "Authorization": os.getenv(API_KEY_ROUTE),
+        "Authorization": os.getenv("API_KEY_ROUTE"),
         "Content-Type": "application/json; charset=utf-8",
     }
 
