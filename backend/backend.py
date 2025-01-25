@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from predictor import WildfirePredictor
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Initialize the predictor globally
 MODEL_PATH = 'models/final_model.h5'
