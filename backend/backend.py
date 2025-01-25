@@ -1,11 +1,42 @@
 from flask import Flask
+import requests
 
 app = Flask(__name__)
 
 
 @app.route("/api/route", methods=["POST"])
 def route():
+
+    # schema POINT A, POINT B, COORDS OF POLYGON
     data = request.json
+
+    # iterate/map thru and give a list of coods
+    coordinates = None
+
+    body = {
+        "coordinates": [[a[0], a[1]], [b[0], b[1]]],
+        "options": {
+            "avoid_polygons": {
+                "type": "Polygon",
+                "coordinates": [coordinates],
+            }
+        },
+    }
+
+    headers = {
+        "Accept": "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
+        "Authorization": "5b3ce3597851110001cf6248a2d2a8be92064aeda19139927e2415a6",
+        "Content-Type": "application/json; charset=utf-8",
+    }
+
+    call = requests.post(
+        "https://api.openrouteservice.org/v2/directions/driving-car/json",
+        json=body,
+        headers=headers,
+    )
+
+    print(call.status_code, call.reason)
+    print(call.text)
 
 
 @app.route("/hello/<name>")
