@@ -1,11 +1,14 @@
 from flask import Flask
 import requests
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__)
 
 
 @app.route("/api/route", methods=["POST"])
 def route():
+    load_dotenv()
 
     # schema POINT A, POINT B, COORDS OF POLYGON
     data = request.json
@@ -25,7 +28,7 @@ def route():
 
     headers = {
         "Accept": "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
-        "Authorization": "5b3ce3597851110001cf6248a2d2a8be92064aeda19139927e2415a6",
+        "Authorization": os.getenv(API_KEY_ROUTE),
         "Content-Type": "application/json; charset=utf-8",
     }
 
