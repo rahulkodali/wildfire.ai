@@ -93,7 +93,9 @@ function App() {
         </Container>
       </div>
       {/* Second Card - Alerts */}
-      <AlertsTab />
+      <div style={{ marginBottom: '1rem' }}>
+        <AlertsTab />
+      </div>
     </Theme>
   )
 }
