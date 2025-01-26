@@ -1,5 +1,5 @@
 import { Card, Flex, Heading, Text, Button, Container } from "@radix-ui/themes";
-import { Phone, Route, Newspaper, Heart, ArrowLeft } from "lucide-react";
+import { Phone, Route, Newspaper, Heart, ArrowLeft, Cpu } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 
 function AlertsTab() {
@@ -89,9 +89,9 @@ function AlertsTab() {
             type: "updates"
         },
         {
-            icon: <Heart size={24} />,
-            title: "Local Resources",
-            description: "Find shelters, supplies, and community support",
+            icon: <Cpu size={24} />,
+            title: "Sensor Data",
+            description: "Coming soon...",
             type: "resources"
         }
     ];
@@ -257,14 +257,14 @@ function AlertsTab() {
                     <ArrowLeft size={16} />
                     Back
                 </Button>
-                <Heading size="5">Local Resources</Heading>
+                <Heading size="5">Sensor Data</Heading>
             </Flex>
 
             <Flex direction="column" gap="4">
                 {/* Add resources content */}
                 <Card style={{ padding: '1rem' }}>
-                    <Text weight="bold">Available Resources:</Text>
-                    <Text>List of local shelters and community support will appear here.</Text>
+                    <Text weight="bold">Sensor Data:</Text>
+                    <Text>  Coming soon...</Text>
                 </Card>
             </Flex>
         </>
