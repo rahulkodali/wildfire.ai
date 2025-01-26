@@ -30,8 +30,6 @@ function App() {
 
   const getActiveComponent = () => {
     switch (activeTab) {
-      case 'address':
-        return <AddressSearch />;
       case 'routes':
         return <RoutesAnalysis />;
       case 'wildfire':
@@ -68,12 +66,6 @@ function App() {
                 className={`nav-button ${activeTab === 'routes' ? 'active' : ''}`}
               >
                 Pathfinder
-              </button>
-              <button 
-                onClick={() => setActiveTab('address')}
-                className={`nav-button ${activeTab === 'address' ? 'active' : ''}`}
-              >
-                Wildfire Risk
               </button>
               <button 
                 onClick={() => setActiveTab('wildfire')}
