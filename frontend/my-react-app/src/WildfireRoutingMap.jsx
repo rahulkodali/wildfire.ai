@@ -447,54 +447,6 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
           </button>
         </div>
 
-        {/* Toggle Switch */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '0.5rem',
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '8px 12px',
-          borderRadius: '6px',
-          width: '120px'
-        }}>
-          <span style={{ 
-            fontSize: '0.875rem', 
-            color: 'white',
-            fontWeight: '500',
-            minWidth: '52px'
-          }}>
-            {isToggleOn ? 'Wildfires' : 'Normal'}
-          </span>
-          <button
-            onClick={handleToggle}
-            style={{
-              width: '48px',
-              height: '24px',
-              borderRadius: '12px',
-              backgroundColor: isToggleOn ? 'var(--accent-9)' : 'var(--gray-5)',
-              position: 'relative',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-              padding: 0
-            }}
-          >
-            <div
-              style={{
-                width: '20px',
-                height: '20px',
-                borderRadius: '50%',
-                backgroundColor: 'white',
-                position: 'absolute',
-                top: '2px',
-                left: isToggleOn ? '26px' : '2px',
-                transition: 'left 0.2s'
-              }}
-            />
-          </button>
-        </div>
-
         {/* Reset Location Button */}
         <button
           onClick={handleResetLocation}

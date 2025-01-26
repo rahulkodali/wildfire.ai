@@ -54,7 +54,7 @@ function RoutesAnalysis() {
   const handleToggle = () => {
     setIsToggleOn(!isToggleOn);
     {/*SWITCH ROUTE*/}
-    if (isToggleOn) {
+    if (!isToggleOn) {
       getRoute();
     } else {
       getRouteNormal();
