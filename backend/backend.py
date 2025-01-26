@@ -9,6 +9,8 @@ import math
 from geopy.distance import geodesic
 import random
 import polyline
+import google.generativeai as genai
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -199,6 +201,53 @@ def getWeather():
     else:
         return jsonify({"error": f"Failed to fetch weather data. Status code: {response.status_code}"}), response.status_code
 
+@app.route('/fire-updates', methods=['GET'])
+def get_fire_updates():
+    try:
+        # Debug: Print request information
+        print("=== Fire Updates Debug ===")
+        print(f"Request received at /fire-updates")
+        print(f"Request args: {request.args}")
+        
+        # Get lat/lon from query parameters
+        lat = request.args.get('lat', type=float)
+        lon = request.args.get('lon', type=float)
+        
+        print(f"Parsed coordinates: lat={lat}, lon={lon}")
+        
+        if lat is None or lon is None:
+            print("Error: Missing coordinates")
+            return jsonify({"error": "Missing lat or lon parameters"}), 400
+        
+        # Validate latitude and longitude ranges
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+            return jsonify({"error": "Invalid lat or lon values"}), 400
+
+        # Configure Gemini API (Replace with your key management system)
+        genai.configure(api_key="AIzaSyA6wJ0GIqVP7jMaPz-PQg8-ia-ArdURT68")
+        model = genai.GenerativeModel("gemini-2.0-flash-exp")
+        
+        print("Making API call to Gemini...")
+        response = model.generate_content(
+            f"Tell me current updates regarding forest fires near my location. "
+            f"Coordinates: latitude {lat}, longitude {lon}. Keep the response concise. No bullet points. Don't mention coordinates."
+        )
+        
+        # Ensure response text exists
+        if not response or not hasattr(response, 'text'):
+            return jsonify({"error": "Failed to fetch fire updates"}), 500
+
+        print(f"Gemini response received: {response.text}")
+        
+        result = {"update": response.text}
+        print(f"Sending response: {result}")
+        
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
 if __name__ == '__main__':
     initialize_predictor()
     app.run(debug=True, port=5001)

@@ -6,6 +6,9 @@ function AlertsTab() {
     const [activeView, setActiveView] = useState('main');
     const [scrollProgress, setScrollProgress] = useState(0);
     const cardRef = useRef(null);
+    const [updates, setUpdates] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -29,6 +32,43 @@ function AlertsTab() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    useEffect(() => {
+        if (activeView === 'updates') {
+            const fetchUpdates = async () => {
+                try {
+                    const lat = 34.0522;
+                    const lon = -118.2437;
+
+                    // Updated URL to match the backend endpoint
+                    const response = await fetch(`http://127.0.0.1:5001/fire-updates?lat=${lat}&lon=${lon}`);
+                    if (!response.ok) {
+                        const text = await response.text();
+                        console.error('API Error:', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            responseText: text
+                        });
+                        throw new Error(`Failed to fetch updates: ${response.status} ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    // The backend returns an object with an 'update' field
+                    setUpdates([{
+                        description: data.update,
+                        timestamp: new Date().toISOString()
+                    }]);
+                    setLoading(false);
+                } catch (err) {
+                    console.error('Fetch error:', err);
+                    setError(err.message);
+                    setLoading(false);
+                }
+            };
+
+            fetchUpdates();
+        }
+    }, [activeView]);
+
     const alertCards = [
         {
             icon: <Phone size={24} />,
@@ -45,7 +85,7 @@ function AlertsTab() {
         {
             icon: <Newspaper size={24} />,
             title: "Latest Updates",
-            description: "Current fire status and emergency broadcasts",
+            description: <>Current fire status and emergency broadcasts brought to you by <strong>Gemini AI</strong></>,
             type: "updates"
         },
         {
@@ -157,7 +197,7 @@ function AlertsTab() {
                 <Heading size="5">Evacuation Routes</Heading>
             </Flex>
 
-            <Text>Select your location on the map to view evacuation routes.</Text>
+            <Text>Select your preferred locations on the map to view possible evacuation routes</Text>
             {/* Add evacuation-specific content */}
         </>
     );
@@ -177,11 +217,31 @@ function AlertsTab() {
             </Flex>
 
             <Flex direction="column" gap="4">
-                {/* Add updates content */}
-                <Card style={{ padding: '1rem' }}>
-                    <Text weight="bold">Latest Update:</Text>
-                    <Text>Current fire status and emergency broadcasts will appear here.</Text>
-                </Card>
+                {loading ? (
+                    <Card style={{ padding: '1rem' }}>
+                        <Text>Loading updates...</Text>
+                    </Card>
+                ) : error ? (
+                    <Card style={{ padding: '1rem' }}>
+                        <Text color="red">Error: {error}</Text>
+                    </Card>
+                ) : updates ? (
+                    updates.map((update, index) => (
+                        <Card key={index} style={{ padding: '1rem' }}>
+                            <Flex direction="column" gap="2">
+                                <Text weight="bold">{update.title}</Text>
+                                <Text>{update.description}</Text>
+                                <Text size="2" color="gray">
+                                    {new Date(update.timestamp).toLocaleString()}
+                                </Text>
+                            </Flex>
+                        </Card>
+                    ))
+                ) : (
+                    <Card style={{ padding: '1rem' }}>
+                        <Text>No updates available.</Text>
+                    </Card>
+                )}
             </Flex>
         </>
     );

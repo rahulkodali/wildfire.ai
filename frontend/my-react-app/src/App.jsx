@@ -7,7 +7,7 @@ import AddressSearch from './AddressSearch';
 import { useState, useEffect } from 'react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('address');
+  const [activeTab, setActiveTab] = useState('routes');
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -63,16 +63,16 @@ function App() {
             <Text size="5" weight="bold" style={{ color: 'var(--tomato-9)' }}>wildfire.</Text>
             <div style={{ display: 'flex', gap: '2rem' }}>
               <button 
-                onClick={() => setActiveTab('address')}
-                className={`nav-button ${activeTab === 'address' ? 'active' : ''}`}
-              >
-                Search by Address
-              </button>
-              <button 
                 onClick={() => setActiveTab('routes')}
                 className={`nav-button ${activeTab === 'routes' ? 'active' : ''}`}
               >
                 Route Planning
+              </button>
+              <button 
+                onClick={() => setActiveTab('address')}
+                className={`nav-button ${activeTab === 'address' ? 'active' : ''}`}
+              >
+                Search by Address
               </button>
               <button 
                 onClick={() => setActiveTab('wildfire')}

@@ -256,7 +256,7 @@ function RoutesAnalysis() {
       {/* First Card - Main Content */}
       <Card size="3" style={{ padding: '1.5rem', marginBottom: '3rem' }}>
         <Flex justify="between" align="center" style={{ marginBottom: '1rem' }}>
-          <Heading size="6">Palisades, California</Heading>
+          <Heading size="6">Pathfinder</Heading>
           {routePolyline && (
             <Flex gap="2" align="center">
               <BrainCircuit size={24} color={'var(--accent-9)'}/>
@@ -274,26 +274,18 @@ function RoutesAnalysis() {
           <div style={{ flex: '4', position: 'relative' }}>
             {/* Search Input */}
             <div style={{
-              position: 'absolute',
-              top: '.5rem',
-              left: '58%',
-              transform: 'translateX(-50%)',
+              position: 'relative',
               width: 'calc(100% - 2rem)',
-              maxWidth: '770px',
-              zIndex: 9999
+              maxWidth: '1000px',
+              margin: '0',
+              marginBottom: '1rem',
+              zIndex: 9999,
+              display: 'flex',
+              gap: '3rem',
+              justifyContent: 'center'
             }}>
-              <div 
-                ref={searchContainerRef}
-                style={{
-                  position: 'absolute',
-                  top: '1.25rem',
-                  left: '38%',
-                  transform: 'translateX(-50%)',
-                  width: 'calc(100% - 2rem)',
-                  maxWidth: '770px',
-                  zIndex: 9999,
-                }}
-              >
+              {/* From Location Input */}
+              <div style={{ flex: 1, position: 'relative' }}>
                 <input 
                   type="text"
                   value={searchFromQuery}
@@ -301,8 +293,16 @@ function RoutesAnalysis() {
                     setSearchFromQuery(e.target.value);
                     searchFromAddress(e.target.value);
                   }}
-                  placeholder="From address..."
+                  onClick={() => setSearchFromQuery('')}
+                  placeholder="Starting point..."
                   className="map-search-input"
+                  style={{
+                    border: '1px solid var(--gray-6)',
+                    borderRadius: 'var(--radius-3)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 'var(--font-size-2)',
+                    color: 'var(--gray-12)'
+                  }}
                 />
                 {searchFromResults.length > 0 && (
                   <Card style={{
@@ -311,7 +311,6 @@ function RoutesAnalysis() {
                     left: 0,
                     right: 0,
                     zIndex: 1000,
-                    width: '104%',
                     marginTop: '0.5rem',
                     paddingBottom: '1rem',
                     maxHeight: '300px',
@@ -331,7 +330,7 @@ function RoutesAnalysis() {
                             border: 'none',
                             cursor: 'pointer',
                             color: 'var(--gray-12)',
-                            borderBottom: index < searchResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
+                            borderBottom: index < searchFromResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
                           }}
                         >
                           {result.name}
@@ -340,7 +339,10 @@ function RoutesAnalysis() {
                     </Flex>
                   </Card>
                 )}
-                
+              </div>
+
+              {/* To Location Input */}
+              <div style={{ flex: 1, position: 'relative' }}>
                 <input 
                   type="text"
                   value={searchQuery}
@@ -348,9 +350,16 @@ function RoutesAnalysis() {
                     setSearchQuery(e.target.value);
                     searchAddress(e.target.value);
                   }}
-                  placeholder="To address..."
+                  onClick={() => setSearchQuery('')}
+                  placeholder="Destination..."
                   className="map-search-input"
-                  style={{marginTop: '1.5rem'}}
+                  style={{
+                    border: '1px solid var(--gray-6)',
+                    borderRadius: 'var(--radius-3)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 'var(--font-size-2)',
+                    color: 'var(--gray-12)'
+                  }}
                 />
                 {searchResults.length > 0 && (
                   <Card style={{
@@ -359,7 +368,6 @@ function RoutesAnalysis() {
                     left: 0,
                     right: 0,
                     zIndex: 1000,
-                    width: '104%',
                     marginTop: '0.5rem',
                     maxHeight: '300px',
                     overflowY: 'auto',
@@ -390,12 +398,14 @@ function RoutesAnalysis() {
               </div>
             </div>
             
+            
             {/* Map with predictions */}
             <div style={{ 
               width: '100%',
               height: '600px',
               borderRadius: 'var(--radius-3)',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              marginTop: '0'
             }}>
               <WildfireRoutingMap 
                 routePolyline={routePolyline}
