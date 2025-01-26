@@ -189,7 +189,7 @@ function RoutesAnalysis() {
     
     const points = [];
     const totalPoints = polyline.length;
-    const interval = Math.max(1, Math.floor(totalPoints / 3));
+    const interval = Math.max(1, Math.floor(totalPoints / 10));
     
     for (let i = 0; i < totalPoints; i += interval) {
       const point = polyline[Math.min(i, totalPoints - 1)];
@@ -405,7 +405,7 @@ function RoutesAnalysis() {
             </div>
           </div>
 
-          {/* Right section - Predictions and Info */}
+          {/* Right section - Routing Info */}
           <div style={{ flex: '1' }}>
             <Card style={{ 
               height: '100%', 
@@ -413,34 +413,6 @@ function RoutesAnalysis() {
               display: 'flex',
               flexDirection: 'column'
             }}>
-              {/* Predictions section */}
-              {routePredictions.length > 0 && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <Heading size="4" style={{ marginBottom: '1rem' }}>Route Risk Analysis</Heading>
-                  <Flex direction="column" gap="3">
-                    {routePredictions.map((prediction, index) => (
-                      <Card key={index} style={{ padding: '0.75rem' }}>
-                        {prediction.satellite_image && (
-                          <img 
-                            src={prediction.satellite_image} 
-                            alt="Satellite view"
-                            style={{
-                              width: '100%',
-                              height: 'auto',
-                              borderRadius: 'var(--radius-2)',
-                              marginBottom: '0.5rem'
-                            }}
-                          />
-                        )}
-                        <Text size="2" weight="bold">Point {index + 1}</Text>
-                        <Text size="2">Risk Level: {prediction.risk_level}</Text>
-                        <Text size="2">Probability: {Math.round(prediction.probability * 100)}%</Text>
-                      </Card>
-                    ))}
-                  </Flex>
-                </div>
-              )}
-
               {/* Top info section */}
               <div>
                 <Heading size="4" style={{ marginBottom: '1rem' }}>Routing Information</Heading>

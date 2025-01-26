@@ -37,12 +37,13 @@ const mapStyles = {
   }
 };
 
-function WildfireRoutingMap({ routePolyline, onLocationLoad }) {
+function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [mapError, setMapError] = useState(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const mapRef = useRef(null);
+  const markersRef = useRef([]);
 
   // Initialize map
   useEffect(() => {
@@ -140,39 +141,82 @@ function WildfireRoutingMap({ routePolyline, onLocationLoad }) {
   // Add effect to handle route display
   useEffect(() => {
     if (map.current && routePolyline && isMapLoaded) {
-      // Remove existing route layer if it exists
+      // Remove existing route layers and sources
       if (map.current.getSource('route')) {
         map.current.removeLayer('route');
         map.current.removeSource('route');
       }
 
-      // Add the route to the map
-      map.current.addSource('route', {
-        'type': 'geojson',
-        'data': {
-          'type': 'Feature',
-          'properties': {},
-          'geometry': {
-            'type': 'LineString',
-            'coordinates': routePolyline.map(coord => [coord[1], coord[0]]) // Switch lat/lng to lng/lat for Mapbox
-          }
-        }
-      });
+      // If we have predictions, create gradient segments
+      if (predictions?.length > 1) {
+        predictions.forEach((prediction, index) => {
+          if (index === predictions.length - 1) return; // Skip last point as it will be the end of previous segment
 
-      map.current.addLayer({
-        'id': 'route',
-        'type': 'line',
-        'source': 'route',
-        'layout': {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        'paint': {
-          'line-color': '#FFA500',
-          'line-width': 10,
-          'line-opacity': 0.75
-        }
-      });
+          const startPoint = prediction.coordinates;
+          const endPoint = predictions[index + 1].coordinates;
+          const avgRisk = (prediction.probability + predictions[index + 1].probability) / 2;
+          
+          const color = avgRisk > 0.7 ? '#ff0000' :  // Red for high risk
+                       avgRisk > 0.4 ? '#ffff00' :  // Yellow for medium risk
+                       '#00ff00';                    // Green for low risk
+
+          // Add a source and layer for this segment
+          map.current.addSource(`route-segment-${index}`, {
+            'type': 'geojson',
+            'data': {
+              'type': 'Feature',
+              'properties': {},
+              'geometry': {
+                'type': 'LineString',
+                'coordinates': [startPoint, endPoint]
+              }
+            }
+          });
+
+          map.current.addLayer({
+            'id': `route-segment-${index}`,
+            'type': 'line',
+            'source': `route-segment-${index}`,
+            'layout': {
+              'line-join': 'round',
+              'line-cap': 'round'
+            },
+            'paint': {
+              'line-color': color,
+              'line-width': 10,
+              'line-opacity': 0.75
+            }
+          });
+        });
+      } else {
+        // If no predictions, show default orange route
+        map.current.addSource('route', {
+          'type': 'geojson',
+          'data': {
+            'type': 'Feature',
+            'properties': {},
+            'geometry': {
+              'type': 'LineString',
+              'coordinates': routePolyline.map(coord => [coord[1], coord[0]])
+            }
+          }
+        });
+
+        map.current.addLayer({
+          'id': 'route',
+          'type': 'line',
+          'source': 'route',
+          'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          'paint': {
+            'line-color': '#FFA500',
+            'line-width': 10,
+            'line-opacity': 0.75
+          }
+        });
+      }
 
       // Fit the map to the route bounds
       const coordinates = routePolyline.map(coord => [coord[1], coord[0]]);
@@ -184,7 +228,43 @@ function WildfireRoutingMap({ routePolyline, onLocationLoad }) {
         padding: 50
       });
     }
-  }, [routePolyline, isMapLoaded]);
+  }, [routePolyline, isMapLoaded, predictions]);
+
+  // Add new effect for prediction markers
+  useEffect(() => {
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    if (!map.current || !predictions?.length || !isMapLoaded) return;
+
+    // Add new markers for predictions
+    predictions.forEach(prediction => {
+      const probability = prediction.probability;
+      const color = probability > 0.7 ? '#ff0000' :  // Red for high risk
+                    probability > 0.4 ? '#ffff00' :  // Yellow for medium risk
+                    '#00ff00';                       // Green for low risk
+
+      const el = document.createElement('div');
+      el.className = 'prediction-marker';
+      el.style.backgroundColor = color;
+      el.style.width = '12px';
+      el.style.height = '12px';
+      el.style.borderRadius = '50%';
+      el.style.border = '2px solid white';
+      el.style.boxShadow = '0 0 4px rgba(0,0,0,0.5)';
+
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat(prediction.coordinates)
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`<h3>Risk Level: ${Math.round(prediction.probability * 100)}%</h3>`)
+        )
+        .addTo(map.current);
+
+      markersRef.current.push(marker);
+    });
+  }, [predictions, isMapLoaded]);
 
   return (
     <div style={mapStyles.wrapper}>
