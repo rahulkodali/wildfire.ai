@@ -25,6 +25,15 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading, cente
   const markersRef = useRef([]);
   const [mapError, setMapError] = useState(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [mapStyle, setMapStyle] = useState('satellite-streets-v12');
+
+  const handleMapStyleToggle = useCallback(() => {
+    const newStyle = mapStyle === 'satellite-streets-v12' ? 'dark-v11' : 'satellite-streets-v12';
+    setMapStyle(newStyle);
+    if (map.current) {
+      map.current.setStyle(`mapbox://styles/mapbox/${newStyle}`);
+    }
+  }, [mapStyle]);
 
   // Function to create and add a marker
   const addMarker = useCallback((prediction) => {
@@ -66,7 +75,7 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading, cente
     try {
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/satellite-streets-v12',
+        style: `mapbox://styles/mapbox/${mapStyle}`,
         center: center || [-118.2437, 34.0522], // Los Angeles by default
         zoom: zoom || 10,
         preserveDrawingBuffer: true,
@@ -123,7 +132,7 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading, cente
       console.error('Map initialization error:', error);
       setMapError('Failed to initialize map. Please check your browser settings.');
     }
-  }, [onLocationSelect, center, zoom]);
+  }, [onLocationSelect, center, zoom, mapStyle]);
 
   // Update map center and zoom when they change
   useEffect(() => {
@@ -163,6 +172,69 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading, cente
           transform: 'translate3d(0,0,0)'
         }} 
       />
+
+      {/* Map Style Toggle */}
+      <div style={{
+        position: 'absolute',
+        bottom: '20px',
+        left: '20px',
+        zIndex: 1000,
+        background: 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(4px)',
+        padding: '4px',
+        borderRadius: '8px',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
+          background: 'rgba(0, 0, 0, 0.8)',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          width: '120px'
+        }}>
+          <span style={{ 
+            fontSize: 'var(--font-size-2)', 
+            color: 'white',
+            fontWeight: '500',
+            minWidth: '52px',
+            fontFamily: 'var(--font-sans)'
+          }}>
+            {mapStyle === 'satellite-streets-v12' ? 'Satellite' : 'Dark'}
+          </span>
+          <button
+            onClick={handleMapStyleToggle}
+            style={{
+              width: '48px',
+              height: '24px',
+              borderRadius: '12px',
+              backgroundColor: mapStyle === 'dark-v11' ? 'var(--accent-9)' : 'var(--gray-5)',
+              position: 'relative',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+              padding: 0
+            }}
+          >
+            <div
+              style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                backgroundColor: 'white',
+                position: 'absolute',
+                top: '2px',
+                left: mapStyle === 'dark-v11' ? '26px' : '2px',
+                transition: 'left 0.2s'
+              }}
+            />
+          </button>
+        </div>
+      </div>
+
       {isLoading && (
         <div style={{
           position: 'absolute',
@@ -175,7 +247,7 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading, cente
           borderRadius: '4px',
           zIndex: 1000
         }}>
-          Analyzing location...
+          Analyzing location
         </div>
       )}
       {mapError && (

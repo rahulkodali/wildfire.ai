@@ -132,7 +132,7 @@ function WildfireAnalysis() {
                   setSearchQuery(e.target.value);
                   searchAddress(e.target.value);
                 }}
-                placeholder="Search for a location..."
+                placeholder="Search for a location"
                 className="custom-input location-input"
                 style={{
                   height: '42px',

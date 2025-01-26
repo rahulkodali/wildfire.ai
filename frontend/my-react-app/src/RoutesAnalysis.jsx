@@ -45,6 +45,9 @@ function RoutesAnalysis() {
   const [routePolyline, setRoutePolyline] = useState(null);
   const [routePredictions, setRoutePredictions] = useState([]);
   const [fromLoc, setFromLoc] = useState([0, 0]);
+  const [estimatedHours, setEstimatedHours] = useState(0);
+  const [estimatedMinutes, setEstimatedMinutes] = useState(0);
+  const [distance, setDistance] = useState(0);
 
   const getRoute = useCallback(async (coordA, coordB) => {
     const polys = await fetch(`http://127.0.0.1:5001`)
@@ -66,8 +69,16 @@ function RoutesAnalysis() {
     }
 
     const res = await fetch(`http://127.0.0.1:5001/api/route`, reqOptions);
-    const resData = (await res.json()).decoded_polyline;
-    setRoutePolyline(resData);
+    const resData = (await res.json());
+
+    setEstimatedHours(Math.floor((resData.directions[0].duration) / 3600))
+    setEstimatedMinutes((Math.floor(((resData.directions[0].duration) % 3600) / 60)))
+
+
+    console.log(resData.directions[0].duration)
+
+    setDistance(Math.round(resData.directions[0].distance / 1609.34)); 
+    setRoutePolyline(resData.decoded_polyline);
   }, [fromLoc]);
 
   useEffect(() => {
@@ -299,7 +310,7 @@ function RoutesAnalysis() {
                     searchFromAddress(e.target.value);
                   }}
                   onClick={() => setSearchFromQuery('')}
-                  placeholder="Starting point..."
+                  placeholder="Starting point"
                   className="map-search-input"
                   style={{
                     border: '1px solid var(--gray-6)',
@@ -356,7 +367,7 @@ function RoutesAnalysis() {
                     searchAddress(e.target.value);
                   }}
                   onClick={() => setSearchQuery('')}
-                  placeholder="Destination..."
+                  placeholder="Destination"
                   className="map-search-input"
                   style={{
                     border: '1px solid var(--gray-6)',
@@ -433,13 +444,13 @@ function RoutesAnalysis() {
                 <Heading size="4" style={{ marginBottom: '1rem' }}>Routing Information</Heading>
                 
                 <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
-                  <strong>Estimated Time:</strong>
-                  <Text color="gray"> 15 min</Text>
+                <strong>ETA:</strong>
+                  <Text color="gray">{estimatedHours != null && estimatedMinutes != null ? ` ${estimatedHours} hr ${estimatedMinutes} min` : ''}</Text>
                 </Text>
                 
                 <Text as="div" size="2">
                   <strong>Distance:</strong>
-                  <Text color="gray"> 4.4 miles</Text>
+                  <Text color="gray"> {distance ? `${distance} miles` : '0 miles'}</Text>
                 </Text>
               </div>
 

@@ -89,7 +89,7 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
     }
 
     try {
-      console.log('Initializing map...');
+      console.log('Initializing map');
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
         style: `mapbox://styles/mapbox/${mapStyle}`,

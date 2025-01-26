@@ -189,7 +189,7 @@ function AddressSearch() {
                   setSearchQuery(e.target.value);
                   searchAddress(e.target.value);
                 }}
-                placeholder="Enter an address..."
+                placeholder="Enter an address"
                 className="map-search-input"
                 style={{
                   width: '100%',
