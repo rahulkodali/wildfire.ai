@@ -155,9 +155,58 @@ function RoutesAnalysis() {
                 transform: 'translateX(-50%)',
                 width: 'calc(100% - 2rem)',
                 maxWidth: '770px',
-                zIndex: 9999
+                zIndex: 9999,
               }}
             >
+              {/* Search Functionality */}
+              <input 
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  searchAddress(e.target.value);
+                }}
+                placeholder="Enter an address..."
+                className="map-search-input"
+              />
+              {/* Search Results Dropdown */}
+              {searchResults.length > 0 && (
+                <Card style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  zIndex: 1000,
+                  width: '104%',
+                  marginTop: '0.5rem',
+                  paddingBottom: '1rem',
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                  background: 'var(--gray-3)'
+                }}>
+                  <Flex direction="column" gap="1">
+                    {searchResults.map((result, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleAddressSelect(result)}
+                        className="search-result-item"
+                        style={{
+                          padding: '0.75rem',
+                          textAlign: 'left',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--gray-12)',
+                          borderBottom: index < searchResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
+                        }}
+                      >
+                        {result.name}
+                      </button>
+                    ))}
+                  </Flex>
+                </Card>
+              )}
+              {/* Search Functionality */}
               <input 
                 type="text"
                 value={searchQuery}
