@@ -211,6 +211,76 @@ function WildfireRoutingMap({ routePolyline, onLocationLoad }) {
     }
   }, [routePolyline, isMapLoaded]);
 
+  useEffect(() => {
+    const fetchAndSetPolygons = async () => {
+      if (map.current && isMapLoaded) {
+        // Remove existing polygon layer if it exists
+        if (map.current.getSource('polygons')) {
+          map.current.removeLayer('polygons');
+          map.current.removeLayer('polygon-borders');
+          map.current.removeSource('polygons');
+        }
+  
+        try {
+          // Fetch polygon coordinates
+          const response = await fetch("http://127.0.0.1:5001/");
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+  
+          const polygonCoordinates = await response.json();
+  
+          // Create GeoJSON data
+          const geojsonData = {
+            type: 'FeatureCollection',
+            features: polygonCoordinates.map(coords => ({
+              type: 'Feature',
+              geometry: {
+                type: 'Polygon',
+                coordinates: [coords]
+              }
+            }))
+          };
+  
+          // Add the polygons source to the map
+          map.current.addSource('polygons', {
+            type: 'geojson',
+            data: geojsonData
+          });
+  
+          // Add the polygons layer to the map
+          map.current.addLayer({
+            id: 'polygons',
+            type: 'fill',
+            source: 'polygons',
+            layout: {},
+            paint: {
+              'fill-color': '#FF6347', // Tomato color
+              'fill-opacity': 0.5
+            }
+          });
+  
+          // Add borders for the polygons
+          map.current.addLayer({
+            id: 'polygon-borders',
+            type: 'line',
+            source: 'polygons',
+            layout: {},
+            paint: {
+              'line-color': '#000',
+              'line-width': 2
+            }
+          });
+        } catch (error) {
+          console.error("Failed to fetch polygon coordinates:", error);
+        }
+      }
+    };
+  
+    // Call the function
+    fetchAndSetPolygons();
+  }, [isMapLoaded]);
+  
   return (
     <div style={mapStyles.wrapper}>
       <div 
