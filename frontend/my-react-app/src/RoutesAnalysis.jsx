@@ -33,7 +33,9 @@ function RoutesAnalysis() {
   ];
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFromQuery, setSearchFromQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [searchFromResults, setSearchFromResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const searchContainerRef = useRef(null);
   const [mapCenter, setMapCenter] = useState(null);
@@ -102,6 +104,58 @@ function RoutesAnalysis() {
     }
   }, []);
 
+  const searchFromAddress = useCallback(async (query) => {
+    if (!query.trim()) {
+      setSearchFromResults([]);
+      return;
+    }
+    
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=pk.eyJ1IjoiZGFrc2hpbmQiLCJhIjoiY202Y20zdzJqMGx2OTJrcTNkcGFtb2cwayJ9.s7CG8iwMwrMq6Br2C2RtMg&country=US`
+      );
+      
+      if (!response.ok) throw new Error('Failed to search address');
+      
+      const data = await response.json();
+      setSearchFromResults(data.features.map(feature => ({
+        name: feature.place_name,
+        coordinates: feature.center, // [longitude, latitude]
+        bbox: feature.bbox // [minLon, minLat, maxLon, maxLat]
+      })));
+    } catch (error) {
+      console.error('Error searching address:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  const handleFromAddressSelect = useCallback((result) => {
+    const [lon, lat] = result.coordinates;
+    setSearchFromResults([]); // Clear search results
+    setSearchFromQuery(result.name); // Update search input
+    
+    // Set map center and zoom based on the selected location
+    setMapCenter([lon, lat]);
+    
+    // If we have a bounding box, calculate appropriate zoom level
+    if (result.bbox) {
+      const [minLon, minLat, maxLon, maxLat] = result.bbox;
+      const latDiff = Math.abs(maxLat - minLat);
+      const lonDiff = Math.abs(maxLon - minLon);
+      const maxDiff = Math.max(latDiff, lonDiff);
+      
+      // Rough calculation for zoom level based on bounding box size
+      const zoom = Math.floor(14 - Math.log2(maxDiff * 10));
+      setMapZoom(Math.min(Math.max(zoom, 10), 16)); // Clamp between 10 and 16
+    } else {
+      setMapZoom(14); // Default zoom level for addresses without bbox
+    }
+    
+    getRoute(lat, lon);
+  }, [getRoute]);
+
   const handleAddressSelect = useCallback((result) => {
     const [lon, lat] = result.coordinates;
     setSearchResults([]); // Clear search results
@@ -158,19 +212,17 @@ function RoutesAnalysis() {
                 zIndex: 9999,
               }}
             >
-              {/* Search Functionality */}
               <input 
                 type="text"
-                value={searchQuery}
+                value={searchFromQuery}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  searchAddress(e.target.value);
+                  setSearchFromQuery(e.target.value);
+                  searchFromAddress(e.target.value);
                 }}
                 placeholder="Enter an address..."
                 className="map-search-input"
               />
-              {/* Search Results Dropdown */}
-              {searchResults.length > 0 && (
+              {searchFromResults.length > 0 && (
                 <Card style={{
                   position: 'absolute',
                   top: '100%',
@@ -185,10 +237,10 @@ function RoutesAnalysis() {
                   background: 'var(--gray-3)'
                 }}>
                   <Flex direction="column" gap="1">
-                    {searchResults.map((result, index) => (
+                    {searchFromResults.map((result, index) => (
                       <button
                         key={index}
-                        onClick={() => handleAddressSelect(result)}
+                        onClick={() => handleFromAddressSelect(result)}
                         className="search-result-item"
                         style={{
                           padding: '0.75rem',
@@ -216,6 +268,7 @@ function RoutesAnalysis() {
                 }}
                 placeholder="Enter an address..."
                 className="map-search-input"
+                style={{marginTop: '1.5rem'}}
               />
               {/* Search Results Dropdown */}
               {searchResults.length > 0 && (
