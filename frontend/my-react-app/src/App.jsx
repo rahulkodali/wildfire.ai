@@ -11,6 +11,15 @@ function App() {
   const [activeTab, setActiveTab] = useState('routes');
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const handleTabChange = (tab) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveTab(tab);
+      setIsTransitioning(false);
+    }, 200); // Match this with the CSS transition duration
+  };
 
   useEffect(() => {
     const controlNavbar = () => {
@@ -62,13 +71,13 @@ function App() {
             <Text size="5" weight="bold" style={{ color: 'var(--tomato-9)' }}>wildfire.</Text>
             <div style={{ display: 'flex', gap: '2rem' }}>
               <button 
-                onClick={() => setActiveTab('routes')}
+                onClick={() => handleTabChange('routes')}
                 className={`nav-button ${activeTab === 'routes' ? 'active' : ''}`}
               >
                 Pathfinder
               </button>
               <button 
-                onClick={() => setActiveTab('wildfire')}
+                onClick={() => handleTabChange('wildfire')}
                 className={`nav-button ${activeTab === 'wildfire' ? 'active' : ''}`}
               >
                 MultiView Risk Prediction
@@ -78,8 +87,15 @@ function App() {
         </Container>
       </div>
 
-      <div style={{ minHeight: '100vh', backgroundColor: 'var(--gray-1)', padding: '2rem 2rem 0', marginTop: '4rem', marginBottom: '-6rem'
-       }}>
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: 'var(--gray-1)', 
+        padding: '2rem 2rem 0', 
+        marginTop: '4rem', 
+        marginBottom: '-6rem',
+        opacity: isTransitioning ? 0 : 1,
+        transition: 'opacity 0.2s ease-in-out'
+      }}>
         <Container>
           {getActiveComponent()}
         </Container>
