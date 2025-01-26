@@ -1,14 +1,73 @@
-import { Theme, Container } from "@radix-ui/themes";
+import { Theme, Container, Text } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css"
 import './App.css'
 import WildfireAnalysis from './WildfireAnalysis';
+import RoutesAnalysis from './RoutesAnalysis';
+import { useState, useEffect } from 'react';
 
 function App() {
+  const [activeTab, setActiveTab] = useState('routes');
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const controlNavbar = () => {
+      if (window.scrollY === 0) {
+        setIsVisible(true);
+      } else if (window.scrollY > lastScrollY) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      setLastScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', controlNavbar);
+    return () => window.removeEventListener('scroll', controlNavbar);
+  }, [lastScrollY]);
+
   return (
     <Theme appearance="dark" accentColor="tomato">
-      <div style={{ minHeight: '100vh', backgroundColor: 'var(--gray-1)', padding: '2rem' }}>
+      {/* Navigation Bar */}
+      <div style={{ 
+        backgroundColor: 'black', 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        transform: `translateY(${isVisible ? '0' : '-100%'})`,
+        transition: 'transform 0.3s ease-in-out'
+      }}>
         <Container>
-          <WildfireAnalysis />
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '1rem 0',
+          }}>
+            <Text size="5" weight="bold" style={{ color: 'var(--tomato-9)' }}>wildfire.</Text>
+            <div style={{ display: 'flex', gap: '2rem' }}>
+              <button 
+                onClick={() => setActiveTab('routes')}
+                className={`nav-button ${activeTab === 'routes' ? 'active' : ''}`}
+              >
+                Route Planning
+              </button>
+              <button 
+                onClick={() => setActiveTab('wildfire')}
+                className={`nav-button ${activeTab === 'wildfire' ? 'active' : ''}`}
+              >
+                Wildfire Analysis
+              </button>
+            </div>
+          </div>
+        </Container>
+      </div>
+
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--gray-1)', padding: '2rem', marginTop: '4rem' }}>
+        <Container>
+          {activeTab === 'routes' ? <RoutesAnalysis /> : <WildfireAnalysis />}
         </Container>
       </div>
     </Theme>

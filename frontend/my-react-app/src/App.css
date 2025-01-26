@@ -69,3 +69,26 @@ a[href] [data-radix-card] {
 [data-radix-card] [data-radix-card] {
   background-color: var(--gray-3);
 }
+
+.nav-button {
+  background: none;
+  border: none;
+  color: var(--gray-11);
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+  font-weight: 500;
+}
+
+.nav-button:hover {
+  color: white;
+}
+
+.nav-button.active {
+  color: var(--tomato-9);
+}
+
+.nav-button:focus {
+  outline: none;
+}
