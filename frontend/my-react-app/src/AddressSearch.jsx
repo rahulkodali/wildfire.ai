@@ -199,7 +199,8 @@ function AddressSearch() {
                   fontSize: 'var(--font-size-2)',
                   color: 'var(--gray-12)',
                   padding: '0.75rem 1rem',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  height: '42px'
                 }}
               />
               {/* Search Results Dropdown */}
@@ -257,7 +258,7 @@ function AddressSearch() {
 
           {/* Right section - Prediction */}
           <div style={{ flex: '1' }}>
-            <Card style={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
+            <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Heading size="4" style={{ marginBottom: '1rem' }}>Location Details</Heading>
               
               {!prediction ? (

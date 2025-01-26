@@ -280,13 +280,13 @@ function RoutesAnalysis() {
             {/* Search Input */}
             <div style={{
               position: 'relative',
-              width: 'calc(100% - 2rem)',
+              width: 'calc(100% - 0rem)',
               maxWidth: '1000px',
               margin: '0',
               marginBottom: '1rem',
               zIndex: 9999,
               display: 'flex',
-              gap: '3rem',
+              gap: '1rem',
               justifyContent: 'center'
             }}>
               {/* From Location Input */}

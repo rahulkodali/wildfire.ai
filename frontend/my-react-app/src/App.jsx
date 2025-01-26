@@ -67,7 +67,7 @@ function App() {
                 onClick={() => setActiveTab('routes')}
                 className={`nav-button ${activeTab === 'routes' ? 'active' : ''}`}
               >
-                Route Planning
+                Pathfinder
               </button>
               <button 
                 onClick={() => setActiveTab('address')}
