@@ -141,10 +141,18 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
   // Add effect to handle route display
   useEffect(() => {
     if (map.current && routePolyline && isMapLoaded) {
-      // Remove existing route layers and sources
-      if (map.current.getSource('route')) {
-        map.current.removeLayer('route');
-        map.current.removeSource('route');
+      // Remove all existing route layers and sources
+      const style = map.current.getStyle();
+      if (style) {
+        Object.keys(style.sources).forEach(sourceId => {
+          if (sourceId.startsWith('route')) {
+            // Remove associated layer first
+            if (map.current.getLayer(sourceId)) {
+              map.current.removeLayer(sourceId);
+            }
+            map.current.removeSource(sourceId);
+          }
+        });
       }
 
       // If we have predictions, create gradient segments
@@ -161,7 +169,8 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
                        '#00ff00';                    // Green for low risk
 
           // Add a source and layer for this segment
-          map.current.addSource(`route-segment-${index}`, {
+          const sourceId = `route-segment-${index}`;
+          map.current.addSource(sourceId, {
             'type': 'geojson',
             'data': {
               'type': 'Feature',
@@ -174,9 +183,9 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
           });
 
           map.current.addLayer({
-            'id': `route-segment-${index}`,
+            'id': sourceId,
             'type': 'line',
-            'source': `route-segment-${index}`,
+            'source': sourceId,
             'layout': {
               'line-join': 'round',
               'line-cap': 'round'
