@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import './RoutesAnalysis.css';
 import WildfireRoutingMap from "./WildfireRoutingMap";
 import AlertsTab from "./AlertsTab";
-import { Flame, BrainCircuit } from "lucide-react";
+import { Flame, BrainCircuit, MapPin } from "lucide-react";
 
 function RoutesAnalysis() {
   const alertCards = [
@@ -265,7 +265,7 @@ function RoutesAnalysis() {
     
     const points = [];
     const totalPoints = polyline.length;
-    const interval = Math.max(1, Math.floor(totalPoints / 10));
+    const interval = Math.max(1, Math.floor(totalPoints / 20));
     
     for (let i = 0; i < totalPoints; i += interval) {
       const point = polyline[Math.min(i, totalPoints - 1)];
@@ -582,13 +582,11 @@ function RoutesAnalysis() {
                 <Flex direction="column" gap="3">
                   {[
                     { arrow: "↑", text: "Continue straight on Rodeo Drive" },
+                    { arrow: "←", text: "Turn left onto Wilshire Boulevard" },
                     { arrow: "→", text: "Turn right onto Sunset Boulevard" },
                     { 
                       arrow: (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" 
-                            fill="white"/>
-                        </svg>
+                        <MapPin size={24} color={'white'}/>
                       ), 
                       text: "Your destination is on the right", 
                       isPin: true 

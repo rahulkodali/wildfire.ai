@@ -164,3 +164,9 @@ a[href] [data-radix-card] {
   transform: rotateY(180deg);
   background-color: var(--gray-4);
 }
+
+.map-search-input:focus {
+  outline: none;
+  border-color: var(--tomato-9) !important;
+  box-shadow: 0 0 0 1px var(--tomato-9);
+}
