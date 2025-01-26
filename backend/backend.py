@@ -41,10 +41,10 @@ def predict_wildfire_risk():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/hello/<name>')
+@app.route('/hello/<n>')
 def hello_name(name):
    return 'Hello %s!' % name
 
 if __name__ == '__main__':
     initialize_predictor()
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
