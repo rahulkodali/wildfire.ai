@@ -34,7 +34,9 @@ function RoutesAnalysis() {
   ];
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFromQuery, setSearchFromQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [searchFromResults, setSearchFromResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isAnalyzingRoute, setIsAnalyzingRoute] = useState(false);
   const searchContainerRef = useRef(null);
@@ -42,15 +44,18 @@ function RoutesAnalysis() {
   const [mapZoom, setMapZoom] = useState(null);
   const [routePolyline, setRoutePolyline] = useState(null);
   const [routePredictions, setRoutePredictions] = useState([]);
+  const [fromLoc, setFromLoc] = useState([0, 0]);
 
   const getRoute = useCallback(async (coordA, coordB) => {
     const polys = await fetch(`http://127.0.0.1:5001`)
     
     const data = JSON.stringify({
-      "point A": [coordB, coordA],
-      "point B": [-118.2437, 34.0522],
+      "point A": [fromLoc[1], fromLoc[0]],
+      "point B": [coordB, coordA],
       "polygon": await polys.json()
     })
+
+    console.log(data);
 
     const reqOptions = {
       method: "POST",
@@ -63,7 +68,7 @@ function RoutesAnalysis() {
     const res = await fetch(`http://127.0.0.1:5001/api/route`, reqOptions);
     const resData = (await res.json()).decoded_polyline;
     setRoutePolyline(resData);
-  }, []);
+  }, [fromLoc]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -105,30 +110,78 @@ function RoutesAnalysis() {
     }
   }, []);
 
-  const handleAddressSelect = useCallback((result) => {
-    const [lon, lat] = result.coordinates;
-    setSearchResults([]); // Clear search results
-    setSearchQuery(result.name); // Update search input
+  const searchFromAddress = useCallback(async (query) => {
+    if (!query.trim()) {
+      setSearchFromResults([]);
+      return;
+    }
     
-    // Set map center and zoom based on the selected location
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=pk.eyJ1IjoiZGFrc2hpbmQiLCJhIjoiY202Y20zdzJqMGx2OTJrcTNkcGFtb2cwayJ9.s7CG8iwMwrMq6Br2C2RtMg&country=US`
+      );
+      
+      if (!response.ok) throw new Error('Failed to search address');
+      
+      const data = await response.json();
+      setSearchFromResults(data.features.map(feature => ({
+        name: feature.place_name,
+        coordinates: feature.center,
+        bbox: feature.bbox
+      })));
+    } catch (error) {
+      console.error('Error searching address:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  const handleFromAddressSelect = useCallback((result) => {
+    const [lon, lat] = result.coordinates;
+    setSearchFromResults([]);
+    setSearchFromQuery(result.name);
     setMapCenter([lon, lat]);
     
-    // If we have a bounding box, calculate appropriate zoom level
     if (result.bbox) {
       const [minLon, minLat, maxLon, maxLat] = result.bbox;
       const latDiff = Math.abs(maxLat - minLat);
       const lonDiff = Math.abs(maxLon - minLon);
       const maxDiff = Math.max(latDiff, lonDiff);
-      
-      // Rough calculation for zoom level based on bounding box size
       const zoom = Math.floor(14 - Math.log2(maxDiff * 10));
-      setMapZoom(Math.min(Math.max(zoom, 10), 16)); // Clamp between 10 and 16
+      setMapZoom(Math.min(Math.max(zoom, 10), 16));
     } else {
-      setMapZoom(14); // Default zoom level for addresses without bbox
+      setMapZoom(14);
+    }
+
+    setFromLoc([lat, lon]);
+  }, []);
+
+  const handleAddressSelect = useCallback((result) => {
+    const [lon, lat] = result.coordinates;
+    setSearchResults([]);
+    setSearchQuery(result.name);
+    setMapCenter([lon, lat]);
+    
+    if (result.bbox) {
+      const [minLon, minLat, maxLon, maxLat] = result.bbox;
+      const latDiff = Math.abs(maxLat - minLat);
+      const lonDiff = Math.abs(maxLon - minLon);
+      const maxDiff = Math.max(latDiff, lonDiff);
+      const zoom = Math.floor(14 - Math.log2(maxDiff * 10));
+      setMapZoom(Math.min(Math.max(zoom, 10), 16));
+    } else {
+      setMapZoom(14);
     }
     
     getRoute(lat, lon);
   }, [getRoute]);
+
+  const handleLocationLoad = useCallback((location) => {
+    console.log("Location received in RoutesAnalysis:", location);
+    setFromLoc(location);
+    setSearchFromQuery("Current Location");
+  }, []);
 
   // Function to sample points along the route
   const sampleRoutePoints = useCallback((polyline, numPoints = 20) => {
@@ -230,78 +283,126 @@ function RoutesAnalysis() {
               zIndex: 9999
             }}>
               <div 
-              ref={searchContainerRef}
-              style={{
-                position: 'absolute',
-                top: '1.25rem',
-                left: '38%',
-                transform: 'translateX(-50%)',
-                width: 'calc(100% - 2rem)',
-                maxWidth: '770px',
-                zIndex: 9999
-              }}
-            >
-              <input 
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  searchAddress(e.target.value);
-                }}
-                placeholder="Enter an address..."
-                className="map-search-input"
-              />
-              {/* Search Results Dropdown */}
-              {searchResults.length > 0 && (
-                <Card style={{
+                ref={searchContainerRef}
+                style={{
                   position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  zIndex: 1000,
-                  width: '104%',
-                  marginTop: '0.5rem',
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  background: 'var(--gray-3)'
-                }}>
-                  <Flex direction="column" gap="1">
-                    {searchResults.map((result, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleAddressSelect(result)}
-                        className="search-result-item"
-                        style={{
-                          padding: '0.75rem',
-                          textAlign: 'left',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'var(--gray-12)',
-                          borderBottom: index < searchResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
-                        }}
-                      >
-                        {result.name}
-                      </button>
-                    ))}
-                  </Flex>
-                </Card>
-              )}
-            </div>
-              </div>
-              
-              {/* Map with predictions */}
-              <div style={{ 
-                width: '100%',
-                height: '600px',
-                borderRadius: 'var(--radius-3)',
-                overflow: 'hidden'
-              }}>
-                <WildfireRoutingMap 
-                  routePolyline={routePolyline} 
-                  predictions={routePredictions}
+                  top: '1.25rem',
+                  left: '38%',
+                  transform: 'translateX(-50%)',
+                  width: 'calc(100% - 2rem)',
+                  maxWidth: '770px',
+                  zIndex: 9999,
+                }}
+              >
+                <input 
+                  type="text"
+                  value={searchFromQuery}
+                  onChange={(e) => {
+                    setSearchFromQuery(e.target.value);
+                    searchFromAddress(e.target.value);
+                  }}
+                  placeholder="From address..."
+                  className="map-search-input"
                 />
+                {searchFromResults.length > 0 && (
+                  <Card style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    width: '104%',
+                    marginTop: '0.5rem',
+                    paddingBottom: '1rem',
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    background: 'var(--gray-3)'
+                  }}>
+                    <Flex direction="column" gap="1">
+                      {searchFromResults.map((result, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleFromAddressSelect(result)}
+                          className="search-result-item"
+                          style={{
+                            padding: '0.75rem',
+                            textAlign: 'left',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--gray-12)',
+                            borderBottom: index < searchResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
+                          }}
+                        >
+                          {result.name}
+                        </button>
+                      ))}
+                    </Flex>
+                  </Card>
+                )}
+                
+                <input 
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    searchAddress(e.target.value);
+                  }}
+                  placeholder="To address..."
+                  className="map-search-input"
+                  style={{marginTop: '1.5rem'}}
+                />
+                {searchResults.length > 0 && (
+                  <Card style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    width: '104%',
+                    marginTop: '0.5rem',
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    background: 'var(--gray-3)'
+                  }}>
+                    <Flex direction="column" gap="1">
+                      {searchResults.map((result, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleAddressSelect(result)}
+                          className="search-result-item"
+                          style={{
+                            padding: '0.75rem',
+                            textAlign: 'left',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--gray-12)',
+                            borderBottom: index < searchResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
+                          }}
+                        >
+                          {result.name}
+                        </button>
+                      ))}
+                    </Flex>
+                  </Card>
+                )}
               </div>
+            </div>
+            
+            {/* Map with predictions */}
+            <div style={{ 
+              width: '100%',
+              height: '600px',
+              borderRadius: 'var(--radius-3)',
+              overflow: 'hidden'
+            }}>
+              <WildfireRoutingMap 
+                routePolyline={routePolyline}
+                predictions={routePredictions}
+                onLocationLoad={handleLocationLoad}
+              />
+            </div>
           </div>
 
           {/* Right section - Predictions and Info */}

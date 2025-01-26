@@ -37,7 +37,7 @@ const mapStyles = {
   }
 };
 
-function WildfireRoutingMap({ routePolyline }) {
+function WildfireRoutingMap({ routePolyline, onLocationLoad }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [mapError, setMapError] = useState(null);
@@ -69,19 +69,19 @@ function WildfireRoutingMap({ routePolyline }) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-  
           // Center map on user's location
-
-          console.log(longitude, latitude);
-  
-          // Optionally, add a marker for user's location
+          mapInstance.setCenter([longitude, latitude]);
+          console.log("Current location:", longitude, latitude);
+          
+          // Call the callback with the user's location
+          if (onLocationLoad) {
+            onLocationLoad([latitude, longitude]);
+          }
         },
         (error) => {
           console.error('Error getting location: ', error);
         }
       );
-
-      
 
       mapInstance.on('load', () => {
         console.log('Map loaded successfully');
@@ -135,7 +135,7 @@ function WildfireRoutingMap({ routePolyline }) {
       console.error('Map initialization error:', error);
       setMapError('Failed to initialize map. Please check your browser settings.');
     }
-  }, []);
+  }, [onLocationLoad]);
 
   // Add effect to handle route display
   useEffect(() => {
