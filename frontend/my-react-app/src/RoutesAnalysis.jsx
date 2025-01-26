@@ -45,20 +45,35 @@ function RoutesAnalysis() {
   const [routePolyline, setRoutePolyline] = useState(null);
   const [routePredictions, setRoutePredictions] = useState([]);
   const [fromLoc, setFromLoc] = useState([0, 0]);
+  const [toLoc, setToLoc] = useState([0, 0]);
   const [estimatedHours, setEstimatedHours] = useState(0);
   const [estimatedMinutes, setEstimatedMinutes] = useState(0);
   const [distance, setDistance] = useState(0);
+  const [isToggleOn, setIsToggleOn] = useState(true);
 
-  const getRoute = useCallback(async (coordA, coordB) => {
+  const handleToggle = () => {
+    setIsToggleOn(!isToggleOn);
+    {/*SWITCH ROUTE*/}
+    if (isToggleOn) {
+      getRoute();
+    } else {
+      getRouteNormal();
+    }
+    console.log("Toggle state:", !isToggleOn);
+  };
+
+  const getRoute = useCallback(async () => {
+    if (fromLoc[0] === 0 || toLoc[0] === 0) return;  // Don't calculate if locations aren't set
+    
     const polys = await fetch(`http://127.0.0.1:5001`)
     
     const data = JSON.stringify({
       "point A": [fromLoc[1], fromLoc[0]],
-      "point B": [coordB, coordA],
+      "point B": [toLoc[1], toLoc[0]],
       "polygon": await polys.json()
     })
 
-    console.log(data);
+    console.log("Calculating wildfire route:", data);
 
     const reqOptions = {
       method: "POST",
@@ -68,18 +83,51 @@ function RoutesAnalysis() {
       body: data
     }
 
-    const res = await fetch(`http://127.0.0.1:5001/api/route`, reqOptions);
-    const resData = (await res.json());
+    try {
+      const res = await fetch(`http://127.0.0.1:5001/api/route`, reqOptions);
+      const resData = await res.json();
 
-    setEstimatedHours(Math.floor((resData.directions[0].duration) / 3600))
-    setEstimatedMinutes((Math.floor(((resData.directions[0].duration) % 3600) / 60)))
+      setEstimatedHours(Math.floor((resData.directions[0].duration) / 3600));
+      setEstimatedMinutes((Math.floor(((resData.directions[0].duration) % 3600) / 60)));
+      setDistance(Math.round(resData.directions[0].distance / 1609.34)); 
+      setRoutePolyline(resData.decoded_polyline);
+    } catch (error) {
+      console.error('Error calculating wildfire route:', error);
+    }
+  }, [fromLoc, toLoc]);
 
+  const getRouteNormal = useCallback(async () => {
+    if (fromLoc[0] === 0 || toLoc[0] === 0) return;  // Don't calculate if locations aren't set
+    
+    const data = JSON.stringify({
+      "point A": [fromLoc[1], fromLoc[0]],
+      "point B": [toLoc[1], toLoc[0]],
+    })
 
-    console.log(resData.directions[0].duration)
+    console.log("Calculating normal route:", data);
 
-    setDistance(Math.round(resData.directions[0].distance / 1609.34)); 
-    setRoutePolyline(resData.decoded_polyline);
-  }, [fromLoc]);
+    const reqOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: data
+    }
+
+    try {
+      const res = await fetch(`http://127.0.0.1:5001/api/route-normal`, reqOptions);
+      const resData = await res.json();
+
+      setEstimatedHours(Math.floor((resData.directions[0].duration) / 3600));
+      setEstimatedMinutes((Math.floor(((resData.directions[0].duration) % 3600) / 60)));
+      setDistance(Math.round(resData.directions[0].distance / 1609.34)); 
+      setRoutePolyline(resData.decoded_polyline);
+    } catch (error) {
+      console.error('Error calculating normal route:', error);
+    }
+  }, [fromLoc, toLoc]);
+ 
+
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -168,8 +216,10 @@ function RoutesAnalysis() {
     setFromLoc([lat, lon]);
   }, []);
 
-  const handleAddressSelect = useCallback((result) => {
+  // Separate route calculation from address selection
+  const handleAddressSelectWithoutRoute = useCallback((result) => {
     const [lon, lat] = result.coordinates;
+    setToLoc([lat, lon]);
     setSearchResults([]);
     setSearchQuery(result.name);
     setMapCenter([lon, lat]);
@@ -184,9 +234,18 @@ function RoutesAnalysis() {
     } else {
       setMapZoom(14);
     }
+  }, []);
+
+  // Function to calculate route
+  const calculateRoute = useCallback(() => {
+    if (fromLoc[0] === 0 || toLoc[0] === 0) return;
     
-    getRoute(lat, lon);
-  }, [getRoute]);
+    if (isToggleOn) {
+      getRoute();
+    } else {
+      getRouteNormal();
+    }
+  }, [fromLoc, toLoc, isToggleOn, getRoute, getRouteNormal]);
 
   const handleLocationLoad = useCallback((location) => {
     console.log("Location received in RoutesAnalysis:", location);
@@ -267,12 +326,61 @@ function RoutesAnalysis() {
       {/* First Card - Main Content */}
       <Card size="3" style={{ padding: '1.5rem', marginBottom: '3rem' }}>
         <Flex justify="between" align="center" style={{ marginBottom: '1rem' }}>
-          <Heading size="6">
-            Pathfinder
-            <span className={`ai-text ${isAnalyzingRoute ? 'visible' : 'hidden'}`}>
-              AI
-            </span>
-          </Heading>
+          <Flex gap="4" align="center">
+            <Heading size="6">
+              Pathfinder
+              <span className={`ai-text ${isAnalyzingRoute ? 'visible' : 'hidden'}`}>
+                AI
+              </span>
+            </Heading>
+            {/* Toggle Switch */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.5rem',
+              background: 'rgba(0, 0, 0, 0.8)',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              width: '120px'
+            }}>
+              <span style={{ 
+                fontSize: '0.875rem', 
+                color: 'white',
+                fontWeight: '500',
+                minWidth: '52px'
+              }}>
+                {isToggleOn ? 'Wildfires' : 'Normal'}
+              </span>
+              <button
+                onClick={handleToggle}
+                style={{
+                  width: '48px',
+                  height: '24px',
+                  borderRadius: '12px',
+                  backgroundColor: isToggleOn ? 'var(--accent-9)' : 'var(--gray-5)',
+                  position: 'relative',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                  padding: 0
+                }}
+              >
+                <div
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    backgroundColor: 'white',
+                    position: 'absolute',
+                    top: '2px',
+                    left: isToggleOn ? '26px' : '2px',
+                    transition: 'left 0.2s'
+                  }}
+                />
+              </button>
+            </div>
+          </Flex>
           {routePolyline && (
             <Flex gap="2" align="center">
               <BrainCircuit size={24} color={'var(--accent-9)'}/>
@@ -298,6 +406,7 @@ function RoutesAnalysis() {
               zIndex: 9999,
               display: 'flex',
               gap: '1rem',
+              alignItems: 'flex-start',
               justifyContent: 'center'
             }}>
               {/* From Location Input */}
@@ -393,7 +502,7 @@ function RoutesAnalysis() {
                       {searchResults.map((result, index) => (
                         <button
                           key={index}
-                          onClick={() => handleAddressSelect(result)}
+                          onClick={() => handleAddressSelectWithoutRoute(result)}
                           className="search-result-item"
                           style={{
                             padding: '0.75rem',
@@ -412,6 +521,26 @@ function RoutesAnalysis() {
                   </Card>
                 )}
               </div>
+
+              {/* Go Button */}
+              <button
+                onClick={calculateRoute}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: 'var(--accent-9)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 'var(--radius-3)',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 'var(--font-size-2)',
+                  fontWeight: '500',
+                  height: '42px',
+                  marginTop: '1px'
+                }}
+              >
+                Go
+              </button>
             </div>
             
             
