@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import './RoutesAnalysis.css';
 import WildfireRoutingMap from "./WildfireRoutingMap";
 import AlertsTab from "./AlertsTab";
-import { Brain, BrainCircuit } from "lucide-react";
+import { Flame, BrainCircuit } from "lucide-react";
 
 function RoutesAnalysis() {
   const alertCards = [
@@ -332,7 +332,7 @@ function RoutesAnalysis() {
               AI
             </span>
           </Heading>
-          <Flex gap="4" align="center">
+          <Flex gap="4" align="center" style={{ position: 'relative' }}>
             {/* Fire Mode Button */}
             <button
               onClick={handleToggle}
@@ -346,18 +346,22 @@ function RoutesAnalysis() {
                 borderRadius: '8px',
                 border: 'none',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s ease',
                 color: 'white',
                 width: '40px',
                 height: '40px',
-                marginRight: '15px'
+                position: 'absolute',
+                right: routePolyline ? '230px' : '0'
               }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2c1 2 3 4 3 7 0 3-2 5-3 5s-3-2-3-5c0-3 2-5 3-7zm0 18c-3 0-5-2-5-5 0-2 1-3 2-4 0 2 2 4 3 4s3-2 3-4c1 1 2 2 2 4 0 3-2 5-5 5z" fill="currentColor"/>
-              </svg>
+              <Flame size={24} color={'white'}/>
             </button>
-            {routePolyline && (
+            <div style={{
+              transition: 'all 0.3s ease',
+              opacity: routePolyline ? '1' : '0',
+              transform: routePolyline ? 'translateX(0)' : 'translateX(-20px)',
+              visibility: routePolyline ? 'visible' : 'hidden'
+            }}>
               <Flex gap="2" align="center">
                 <BrainCircuit size={24} color={'var(--accent-9)'}/>
                 <Text size="2" color="gray">Analyze Route Risk</Text>
@@ -366,7 +370,7 @@ function RoutesAnalysis() {
                   onCheckedChange={(checked) => setIsAnalyzingRoute(checked)}
                 />
               </Flex>
-            )}
+            </div>
           </Flex>
         </Flex>
         
