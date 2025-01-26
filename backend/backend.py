@@ -97,8 +97,6 @@ def shape_fires():
 
     return jsonify(list(dict_vals.values()))
 
-
-
 @app.route("/api/route", methods=["POST"])
 def route():
     load_dotenv()

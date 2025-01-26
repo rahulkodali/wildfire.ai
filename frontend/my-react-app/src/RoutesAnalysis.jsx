@@ -1,8 +1,9 @@
-import { Card, Flex, Heading, Text, Link } from "@radix-ui/themes";
+import { Card, Flex, Heading, Text, Link, Switch } from "@radix-ui/themes";
 import { useState, useEffect, useCallback, useRef } from 'react';
 import './RoutesAnalysis.css';
 import WildfireRoutingMap from "./WildfireRoutingMap";
 import AlertsTab from "./AlertsTab";
+import { Brain, BrainCircuit } from "lucide-react";
 
 function RoutesAnalysis() {
   const alertCards = [
@@ -35,10 +36,12 @@ function RoutesAnalysis() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isAnalyzingRoute, setIsAnalyzingRoute] = useState(false);
   const searchContainerRef = useRef(null);
   const [mapCenter, setMapCenter] = useState(null);
   const [mapZoom, setMapZoom] = useState(null);
   const [routePolyline, setRoutePolyline] = useState(null);
+  const [routePredictions, setRoutePredictions] = useState([]);
 
   const getRoute = useCallback(async (coordA, coordB) => {
     const polys = await fetch(`http://127.0.0.1:5001`)
@@ -127,11 +130,91 @@ function RoutesAnalysis() {
     getRoute(lat, lon);
   }, [getRoute]);
 
+  // Function to sample points along the route
+  const sampleRoutePoints = useCallback((polyline, numPoints = 20) => {
+    if (!polyline || polyline.length < 2) return [];
+    
+    const points = [];
+    const totalPoints = polyline.length;
+    const interval = Math.max(1, Math.floor(totalPoints / 3));
+    
+    for (let i = 0; i < totalPoints; i += interval) {
+      const point = polyline[Math.min(i, totalPoints - 1)];
+      points.push(point);
+    }
+    
+    // Ensure we include the last point
+    if (points[points.length - 1] !== polyline[totalPoints - 1]) {
+      points.push(polyline[totalPoints - 1]);
+    }
+    
+    return points;
+  }, []);
+
+  // Function to get predictions for points
+  const getPredictionsForPoints = useCallback(async (points) => {
+    try {
+      const predictions = await Promise.all(
+        points.map(async ([lat, lon]) => {
+          const response = await fetch('http://localhost:5001/predict', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ latitude: lat, longitude: lon }),
+          });
+
+          if (!response.ok) {
+            console.error('Prediction request failed:', await response.text());
+            throw new Error('Failed to get prediction');
+          }
+          const data = await response.json();
+          return {
+            coordinates: [lon, lat],
+            probability: data.probability,
+            satellite_image: data.satellite_image,
+            risk_level: data.risk_level,
+            confidence: data.confidence
+          };
+        })
+      );
+      setRoutePredictions(predictions);
+      console.log('Predictions:', predictions); // For testing
+      return predictions;
+    } catch (error) {
+      console.error('Error getting predictions:', error);
+      setRoutePredictions([]);
+      return [];
+    }
+  }, []);
+
+  // Effect to handle toggle change
+  useEffect(() => {
+    if (isAnalyzingRoute && routePolyline) {
+      const sampledPoints = sampleRoutePoints(routePolyline);
+      getPredictionsForPoints(sampledPoints);
+    } else {
+      setRoutePredictions([]); // Clear predictions when toggle is off
+    }
+  }, [isAnalyzingRoute, routePolyline, sampleRoutePoints, getPredictionsForPoints]);
+
   return (
     <div>
       {/* First Card - Main Content */}
       <Card size="3" style={{ padding: '1.5rem', marginBottom: '3rem' }}>
-        <Heading size="6" style={{ marginBottom: '1rem' }}>Palisades, California</Heading>
+        <Flex justify="between" align="center" style={{ marginBottom: '1rem' }}>
+          <Heading size="6">Palisades, California</Heading>
+          {routePolyline && (
+            <Flex gap="2" align="center">
+              <BrainCircuit size={24} color={'var(--accent-9)'}/>
+              <Text size="2" color="gray">Analyze Route Risk</Text>
+              <Switch 
+                checked={isAnalyzingRoute}
+                onCheckedChange={(checked) => setIsAnalyzingRoute(checked)}
+              />
+            </Flex>
+          )}
+        </Flex>
         
         <Flex gap="4" className="stack-layout">
           {/* Left section - Map and Search */}
@@ -207,20 +290,21 @@ function RoutesAnalysis() {
             </div>
               </div>
               
-              {/* Map Placeholder */}
-              <div style={{ flex: '4' }}>
+              {/* Map with predictions */}
               <div style={{ 
                 width: '100%',
                 height: '600px',
                 borderRadius: 'var(--radius-3)',
                 overflow: 'hidden'
               }}>
-                <WildfireRoutingMap routePolyline={routePolyline} />
+                <WildfireRoutingMap 
+                  routePolyline={routePolyline} 
+                  predictions={routePredictions}
+                />
               </div>
-            </div>
           </div>
 
-          {/* Right section - Routing Info */}
+          {/* Right section - Predictions and Info */}
           <div style={{ flex: '1' }}>
             <Card style={{ 
               height: '100%', 
@@ -228,6 +312,34 @@ function RoutesAnalysis() {
               display: 'flex',
               flexDirection: 'column'
             }}>
+              {/* Predictions section */}
+              {routePredictions.length > 0 && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <Heading size="4" style={{ marginBottom: '1rem' }}>Route Risk Analysis</Heading>
+                  <Flex direction="column" gap="3">
+                    {routePredictions.map((prediction, index) => (
+                      <Card key={index} style={{ padding: '0.75rem' }}>
+                        {prediction.satellite_image && (
+                          <img 
+                            src={prediction.satellite_image} 
+                            alt="Satellite view"
+                            style={{
+                              width: '100%',
+                              height: 'auto',
+                              borderRadius: 'var(--radius-2)',
+                              marginBottom: '0.5rem'
+                            }}
+                          />
+                        )}
+                        <Text size="2" weight="bold">Point {index + 1}</Text>
+                        <Text size="2">Risk Level: {prediction.risk_level}</Text>
+                        <Text size="2">Probability: {Math.round(prediction.probability * 100)}%</Text>
+                      </Card>
+                    ))}
+                  </Flex>
+                </div>
+              )}
+
               {/* Top info section */}
               <div>
                 <Heading size="4" style={{ marginBottom: '1rem' }}>Routing Information</Heading>

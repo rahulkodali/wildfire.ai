@@ -1,4 +1,4 @@
-import { Card, Flex, Heading, Text } from "@radix-ui/themes";
+import { Card, Flex, Heading, Text, Separator } from "@radix-ui/themes";
 import { useState, useCallback, useRef, useEffect } from 'react';
 import WildfirePredictionMap from './WildfirePredictionMap';
 
@@ -256,9 +256,13 @@ function AddressSearch() {
                   overflowY: 'auto', 
                   flex: 1,
                   marginRight: '-8px',
-                  paddingRight: '8px'
+                  paddingRight: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
                 }}>
-                  <Card style={{ backgroundColor: 'var(--gray-3)' }}>
+                  {/* Main Content */}
+                  <div>
                     {/* Satellite Image */}
                     <div style={{ 
                       width: '100%',
@@ -277,7 +281,7 @@ function AddressSearch() {
                         }}
                       />
                     </div>
-
+                    
                     <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
                       <strong>Location:</strong>
                       <Text color="gray"> {prediction.lat.toFixed(4)}, {prediction.lon.toFixed(4)}</Text>
@@ -290,42 +294,44 @@ function AddressSearch() {
                       <strong>Confidence:</strong>
                       <Text color="gray"> {(prediction.confidence * 100).toFixed(1)}%</Text>
                     </Text>
+                  </div>
 
-                    {/* Weather Information */}
-                    {prediction.temperature !== undefined && (
-                      <div style={{ 
-                        backgroundColor: 'var(--gray-4)',
-                        borderRadius: 'var(--radius-3)'
-                      }}>
-                        
+                  {/* Weather Information */}
+                  {prediction.temperature !== undefined && (
+                    <div style={{ 
+                      marginTop: 'auto',
+                      paddingTop: '1rem'
+                    }}>
+                      <Heading size="3" style={{ marginBottom: '0.5rem' }}>Weather Details</Heading>
+                      <Separator size="4" style={{ margin: "15px -16px", width: 'calc(95% + 25px)' }} />
+
+                      <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
+                        <strong>Temperature:</strong>
+                        <Text color="gray"> {prediction.temperature?.toFixed(1)}°F</Text>
+                      </Text>
+                      
+                      {prediction.humidity !== undefined && (
                         <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
-                          <strong>Temperature:</strong>
-                          <Text color="gray"> {prediction.temperature?.toFixed(1)}°F</Text>
+                          <strong>Humidity:</strong>
+                          <Text color="gray"> {prediction.humidity}%</Text>
                         </Text>
-                        
-                        {prediction.humidity !== undefined && (
-                          <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
-                            <strong>Humidity:</strong>
-                            <Text color="gray"> {prediction.humidity}%</Text>
-                          </Text>
-                        )}
-                        
-                        {prediction.windSpeed !== undefined && (
-                          <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
-                            <strong>Wind Speed:</strong>
-                            <Text color="gray"> {prediction.windSpeed} mph</Text>
-                          </Text>
-                        )}
-                        
-                        {prediction.weatherRisk !== undefined && (
-                          <Text as="div" size="2">
-                            <strong>Weather-based Risk:</strong>
-                            <Text color={prediction.weatherRisk > 50 ? 'tomato' : 'green'}> {prediction.weatherRisk}%</Text>
-                          </Text>
-                        )}
-                      </div>
-                    )}
-                  </Card>
+                      )}
+                      
+                      {prediction.windSpeed !== undefined && (
+                        <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
+                          <strong>Wind Speed:</strong>
+                          <Text color="gray"> {prediction.windSpeed} mph</Text>
+                        </Text>
+                      )}
+                      
+                      {prediction.weatherRisk !== undefined && (
+                        <Text as="div" size="2">
+                          <strong>Weather-based Risk:</strong>
+                          <Text color={prediction.weatherRisk > 50 ? 'tomato' : 'green'}> {prediction.weatherRisk}%</Text>
+                        </Text>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </Card>

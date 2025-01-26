@@ -3,6 +3,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 from model import load_model
+import base64
 
 class WildfirePredictor:
     def __init__(self, model_path):
@@ -44,7 +45,7 @@ class WildfirePredictor:
         # Get the image
         response = requests.get(url)
         if response.status_code != 200:
-            raise Exception(f"Failed to fetch satellite image: {response.status_code}")
+            raise Exception(f"Failed to fetch satellite image: {response.status_code} {url}")
         
         return response.content
     
@@ -63,11 +64,15 @@ class WildfirePredictor:
                 
             prediction = float(self.model.predict(processed_image)[0][0])
             
+            # Convert image to base64
+            base64_image = base64.b64encode(image_data).decode('utf-8')
+            
             return {
                 'probability': prediction,
                 'risk_level': 'High Risk' if prediction > 0.5 else 'Low Risk',
                 'confidence': float(max(prediction, 1-prediction)),
-                'coordinates': {'lat': lat, 'lon': lon}
+                'coordinates': {'lat': lat, 'lon': lon},
+                'satellite_image': f'data:image/png;base64,{base64_image}'
             }
             
         except Exception as e:
