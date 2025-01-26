@@ -326,71 +326,48 @@ function RoutesAnalysis() {
       {/* First Card - Main Content */}
       <Card size="3" style={{ padding: '1.5rem', marginBottom: '3rem' }}>
         <Flex justify="between" align="center" style={{ marginBottom: '1rem' }}>
+          <Heading size="6">
+            Pathfinder
+            <span className={`ai-text ${isAnalyzingRoute ? 'visible' : 'hidden'}`}>
+              AI
+            </span>
+          </Heading>
           <Flex gap="4" align="center">
-            <Heading size="6">
-              Pathfinder
-              <span className={`ai-text ${isAnalyzingRoute ? 'visible' : 'hidden'}`}>
-                AI
-              </span>
-            </Heading>
-            {/* Toggle Switch */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.5rem',
-              background: 'rgba(0, 0, 0, 0.8)',
-              padding: '8px 12px',
-              borderRadius: '6px',
-              width: '120px'
-            }}>
-              <span style={{ 
-                fontSize: '0.875rem', 
+            {/* Fire Mode Button */}
+            <button
+              onClick={handleToggle}
+              title={isToggleOn ? "Wildfire Mode" : "Normal Mode"}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: isToggleOn ? 'var(--accent-9)' : 'var(--gray-5)',
+                padding: '8px',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
                 color: 'white',
-                fontWeight: '500',
-                minWidth: '52px'
-              }}>
-                {isToggleOn ? 'Wildfires' : 'Normal'}
-              </span>
-              <button
-                onClick={handleToggle}
-                style={{
-                  width: '48px',
-                  height: '24px',
-                  borderRadius: '12px',
-                  backgroundColor: isToggleOn ? 'var(--accent-9)' : 'var(--gray-5)',
-                  position: 'relative',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s',
-                  padding: 0
-                }}
-              >
-                <div
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    backgroundColor: 'white',
-                    position: 'absolute',
-                    top: '2px',
-                    left: isToggleOn ? '26px' : '2px',
-                    transition: 'left 0.2s'
-                  }}
+                width: '40px',
+                height: '40px',
+                marginRight: '15px'
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2c1 2 3 4 3 7 0 3-2 5-3 5s-3-2-3-5c0-3 2-5 3-7zm0 18c-3 0-5-2-5-5 0-2 1-3 2-4 0 2 2 4 3 4s3-2 3-4c1 1 2 2 2 4 0 3-2 5-5 5z" fill="currentColor"/>
+              </svg>
+            </button>
+            {routePolyline && (
+              <Flex gap="2" align="center">
+                <BrainCircuit size={24} color={'var(--accent-9)'}/>
+                <Text size="2" color="gray">Analyze Route Risk</Text>
+                <Switch 
+                  checked={isAnalyzingRoute}
+                  onCheckedChange={(checked) => setIsAnalyzingRoute(checked)}
                 />
-              </button>
-            </div>
+              </Flex>
+            )}
           </Flex>
-          {routePolyline && (
-            <Flex gap="2" align="center">
-              <BrainCircuit size={24} color={'var(--accent-9)'}/>
-              <Text size="2" color="gray">Analyze Route Risk</Text>
-              <Switch 
-                checked={isAnalyzingRoute}
-                onCheckedChange={(checked) => setIsAnalyzingRoute(checked)}
-              />
-            </Flex>
-          )}
         </Flex>
         
         <Flex gap="4" className="stack-layout">
