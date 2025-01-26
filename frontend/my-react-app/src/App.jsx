@@ -97,7 +97,7 @@ function App() {
       <div style={{ 
         minHeight: '100vh', 
         backgroundColor: 'var(--gray-1)', 
-        padding: '2rem 2rem 0', 
+        padding: '2rem 2rem 8rem', 
         marginTop: '4rem', 
         marginBottom: '-6rem',
         opacity: isTransitioning ? 0 : 1,
@@ -106,10 +106,6 @@ function App() {
         <Container>
           {getActiveComponent()}
         </Container>
-      </div>
-      {/* Second Card - Alerts */}
-      <div style={{ marginTop: '8rem' }}>
-        <AlertsTab />
       </div>
     </Theme>
   )

@@ -673,7 +673,9 @@ function RoutesAnalysis() {
           </div>
         </Flex>
       </Card>
-
+      <div style={{ marginTop: '1rem' }}>
+        <AlertsTab />
+      </div>
       
     </div>
   );
