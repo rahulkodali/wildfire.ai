@@ -478,8 +478,7 @@ function RoutesAnalysis() {
         </Flex>
       </Card>
 
-      {/* Second Card - Alerts */}
-      <AlertsTab />
+      
     </div>
   );
 }

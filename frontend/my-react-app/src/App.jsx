@@ -5,6 +5,7 @@ import WildfireAnalysis from './WildfireAnalysis';
 import RoutesAnalysis from './RoutesAnalysis';
 import AddressSearch from './AddressSearch';
 import { useState, useEffect } from 'react';
+import AlertsTab from './AlertsTab';
 
 function App() {
   const [activeTab, setActiveTab] = useState('routes');
@@ -72,7 +73,7 @@ function App() {
                 onClick={() => setActiveTab('address')}
                 className={`nav-button ${activeTab === 'address' ? 'active' : ''}`}
               >
-                Search by Address
+                Wildfire Risk
               </button>
               <button 
                 onClick={() => setActiveTab('wildfire')}
@@ -85,11 +86,14 @@ function App() {
         </Container>
       </div>
 
-      <div style={{ minHeight: '100vh', backgroundColor: 'var(--gray-1)', padding: '2rem', marginTop: '4rem' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--gray-1)', padding: '2rem 2rem 0', marginTop: '4rem', marginBottom: '-6rem'
+       }}>
         <Container>
           {getActiveComponent()}
         </Container>
       </div>
+      {/* Second Card - Alerts */}
+      <AlertsTab />
     </Theme>
   )
 }

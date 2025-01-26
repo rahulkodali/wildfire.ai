@@ -44,6 +44,7 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const markersRef = useRef([]);
   const [isToggleOn, setIsToggleOn] = useState(false);
+  const [mapStyle, setMapStyle] = useState('satellite-streets-v12');
 
   const handleToggle = () => {
     setIsToggleOn(!isToggleOn);
@@ -69,6 +70,14 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
     }
   };
 
+  const handleMapStyleToggle = useCallback(() => {
+    const newStyle = mapStyle === 'satellite-streets-v12' ? 'dark-v11' : 'satellite-streets-v12';
+    setMapStyle(newStyle);
+    if (map.current) {
+      map.current.setStyle(`mapbox://styles/mapbox/${newStyle}`);
+    }
+  }, [mapStyle]);
+
   // Initialize map
   useEffect(() => {
     if (map.current) return;
@@ -83,7 +92,7 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
       console.log('Initializing map...');
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: `mapbox://styles/mapbox/${mapStyle}`,
         center: [-118.2437, 34.0522],
         zoom: 10,
         preserveDrawingBuffer: true,
@@ -160,7 +169,7 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
       console.error('Map initialization error:', error);
       setMapError('Failed to initialize map. Please check your browser settings.');
     }
-  }, [onLocationLoad]);
+  }, [onLocationLoad, mapStyle]);
 
   // Add effect to handle route display
   useEffect(() => {
@@ -389,6 +398,54 @@ function WildfireRoutingMap({ routePolyline, predictions, onLocationLoad }) {
         alignItems: 'center',
         gap: '4px'
       }}>
+
+        {/* Map Style Toggle */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
+          background: 'rgba(0, 0, 0, 0.8)',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          width: '120px'
+        }}>
+          <span style={{ 
+            fontSize: '0.875rem', 
+            color: 'white',
+            fontWeight: '500',
+            minWidth: '52px'
+          }}>
+            {mapStyle === 'satellite-streets-v12' ? 'Satellite' : 'Dark'}
+          </span>
+          <button
+            onClick={handleMapStyleToggle}
+            style={{
+              width: '48px',
+              height: '24px',
+              borderRadius: '12px',
+              backgroundColor: mapStyle === 'dark-v11' ? 'var(--accent-9)' : 'var(--gray-5)',
+              position: 'relative',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+              padding: 0
+            }}
+          >
+            <div
+              style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                backgroundColor: 'white',
+                position: 'absolute',
+                top: '2px',
+                left: mapStyle === 'dark-v11' ? '26px' : '2px',
+                transition: 'left 0.2s'
+              }}
+            />
+          </button>
+        </div>
 
         {/* Toggle Switch */}
         <div style={{
