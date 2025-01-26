@@ -268,6 +268,29 @@ def get_fire_updates():
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/api/compute-direction", methods=["POST"])
+def compute_direction():
+    data = request.json
+    steps = data["directions"][0]["steps"]
+
+    instructions = []
+
+    for step in steps:
+        instruction = step["instruction"]
+        if "arrive" in instruction.lower():
+            instructions.append([instruction, "Arrive"])
+
+        elif "left" in instruction.lower():
+            instructions.append([instruction, "Left"])
+
+        elif "right" in instruction.lower():
+            instructions.append([instruction, "Right"])
+
+        else:
+            instructions.append([instruction, "Forward"])
+
+    return jsonify(instructions), 200
     
 if __name__ == '__main__':
     initialize_predictor()

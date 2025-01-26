@@ -52,6 +52,7 @@ function RoutesAnalysis() {
   const [isToggleOn, setIsToggleOn] = useState(true);
   const [destinationCity, setDestinationCity] = useState('');
   const [isCityTransitioning, setIsCityTransitioning] = useState(false);
+  const [directions, setDirections] = useState([]);
 
   const handleToggle = () => {
     setIsToggleOn(!isToggleOn);
@@ -93,6 +94,28 @@ function RoutesAnalysis() {
       setEstimatedMinutes((Math.floor(((resData.directions[0].duration) % 3600) / 60)));
       setDistance(Math.round(resData.directions[0].distance / 1609.34)); 
       setRoutePolyline(resData.decoded_polyline);
+
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+      
+      const raw = JSON.stringify({
+        "directions": resData.directions
+      });
+      
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow"
+      };
+      
+      
+      var response = await fetch('http://127.0.0.1:5001/api/compute-direction', requestOptions);
+      const instructions = await response.json();
+      console.log("Instructions:", instructions);
+      setDirections(instructions)
+      
+
     } catch (error) {
       console.error('Error calculating wildfire route:', error);
     }
@@ -124,11 +147,32 @@ function RoutesAnalysis() {
       setEstimatedMinutes((Math.floor(((resData.directions[0].duration) % 3600) / 60)));
       setDistance(Math.round(resData.directions[0].distance / 1609.34)); 
       setRoutePolyline(resData.decoded_polyline);
+
+      
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+      
+      const raw = JSON.stringify({
+        "directions": resData.directions
+      });
+      
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow"
+      };
+      
+      
+      var response = await fetch('http://127.0.0.1:5001/api/compute-direction', requestOptions);
+      const instructions = await response.json();
+      console.log("Instructions:", instructions);
+      setDirections(instructions)
+
     } catch (error) {
       console.error('Error calculating normal route:', error);
     }
   }, [fromLoc, toLoc]);
- 
 
 
   useEffect(() => {
@@ -579,35 +623,51 @@ function RoutesAnalysis() {
                 }}>
                   Directions to {destinationCity || 'Destination'}
                 </Heading>
-                <Flex direction="column" gap="3">
-                  {[
-                    { arrow: "↑", text: "Continue straight on Rodeo Drive" },
-                    { arrow: "←", text: "Turn left onto Wilshire Boulevard" },
-                    { arrow: "→", text: "Turn right onto Sunset Boulevard" },
-                    { 
-                      arrow: (
-                        <MapPin size={24} color={'white'}/>
-                      ), 
-                      text: "Your destination is on the right", 
-                      isPin: true 
-                    }
-                  ].map((direction, index) => (
-                    <Card key={index} style={{ 
-                      padding: '0.75rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '1rem',
-                      backgroundColor: 'var(--gray-3)'
-                    }}>
-                      <Text size="5" style={{ 
-                        fontSize: '1.5rem',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}>{direction.arrow}</Text>
-                      <Text size="2">{direction.text}</Text>
-                    </Card>
-                  ))}
-                </Flex>
+                <div style={{ 
+                  height: '300px', 
+                  overflowY: 'auto',
+                  paddingRight: '8px'
+                }}>
+                  <Flex direction="column" gap="3">
+                    {directions && directions.map((direction, index) => {
+                      const [text, type] = direction;
+                      let arrow;
+                      switch(type) {
+                        case 'Left':
+                          arrow = "←";
+                          break;
+                        case 'Right':
+                          arrow = "→";
+                          break;
+                        case 'Forward':
+                          arrow = "↑";
+                          break;
+                        case 'Arrive':
+                          arrow = <MapPin size={24} color={'white'}/>;
+                          break;
+                        default:
+                          arrow = "↑";
+                      }
+                      
+                      return (
+                        <Card key={index} style={{ 
+                          padding: '0.75rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '1rem',
+                          backgroundColor: 'var(--gray-3)'
+                        }}>
+                          <Text size="5" style={{ 
+                            fontSize: '1.5rem',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}>{arrow}</Text>
+                          <Text size="2">{text}</Text>
+                        </Card>
+                      );
+                    })}
+                  </Flex>
+                </div>
               </div>
             </Card>
           </div>
