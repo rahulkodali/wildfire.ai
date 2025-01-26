@@ -41,15 +41,19 @@ function RoutesAnalysis() {
   const [mapCenter, setMapCenter] = useState(null);
   const [mapZoom, setMapZoom] = useState(null);
   const [routePolyline, setRoutePolyline] = useState(null);
+  const [fromLoc, setFromLoc] = useState([0, 0]);
+
 
   const getRoute = useCallback(async (coordA, coordB) => {
     const polys = await fetch(`http://127.0.0.1:5001`)
     
     const data = JSON.stringify({
-      "point A": [coordB, coordA],
-      "point B": [-118.2437, 34.0522],
+      "point A": [fromLoc[1], fromLoc[0]],
+      "point B": [coordB, coordA],
       "polygon": await polys.json()
     })
+
+    console.log(data);
 
     const reqOptions = {
       method: "POST",
@@ -62,7 +66,7 @@ function RoutesAnalysis() {
     const res = await fetch(`http://127.0.0.1:5001/api/route`, reqOptions);
     const resData = (await res.json()).decoded_polyline;
     setRoutePolyline(resData);
-  }, []);
+  }, [fromLoc]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -152,9 +156,9 @@ function RoutesAnalysis() {
     } else {
       setMapZoom(14); // Default zoom level for addresses without bbox
     }
-    
-    getRoute(lat, lon);
-  }, [getRoute]);
+
+    setFromLoc([lat, lon]);
+  }, [fromLoc]);
 
   const handleAddressSelect = useCallback((result) => {
     const [lon, lat] = result.coordinates;
@@ -180,6 +184,12 @@ function RoutesAnalysis() {
     
     getRoute(lat, lon);
   }, [getRoute]);
+
+  const handleLocationLoad = useCallback((location) => {
+    console.log("Location received in RoutesAnalysis:", location);
+    setFromLoc(location);
+    setSearchFromQuery("Current Location");
+  }, []);
 
   return (
     <div>
@@ -317,7 +327,10 @@ function RoutesAnalysis() {
                 borderRadius: 'var(--radius-3)',
                 overflow: 'hidden'
               }}>
-                <WildfireRoutingMap routePolyline={routePolyline} />
+                <WildfireRoutingMap 
+                  routePolyline={routePolyline} 
+                  onLocationLoad={handleLocationLoad}
+                />
               </div>
             </div>
           </div>
