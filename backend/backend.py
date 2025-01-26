@@ -150,6 +150,50 @@ def route():
             jsonify({"error": "Failed to get route", "status": call.status_code}),
             call.status_code,
         )
+
+@app.route("/api/route-normal", methods=["POST"])
+def route_normal():
+    load_dotenv()
+
+    # schema POINT A, POINT B, COORDS OF POLYGON
+    data = request.json
+
+    pointA = data["point A"]
+    pointB = data["point B"]
+
+    # iterate/map thru and give a list of coods
+
+    body = {"coordinates": [[pointA[0], pointA[1]], [pointB[0], pointB[1]]]}
+
+    headers = {
+        "Accept": "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
+        "Authorization": "5b3ce3597851110001cf6248a2d2a8be92064aeda19139927e2415a6",
+        "Content-Type": "application/json; charset=utf-8",
+    }
+
+    call = requests.post(
+        "https://api.openrouteservice.org/v2/directions/driving-car/json",
+        json=body,
+        headers=headers,
+    )
+
+    if call.status_code == 200:
+        response = call.json()
+
+        encoded_polyline = response["routes"][0]["geometry"]
+        directions = response["routes"][0]["segments"]
+
+        decoded_polyline = polyline.decode(encoded_polyline)
+        print(encoded_polyline)
+
+        result = {"decoded_polyline": decoded_polyline, "directions": directions}
+
+        return jsonify(result)
+    else:
+        return (
+            jsonify({"error": "Failed to get route", "status": call.status_code}),
+            call.status_code,
+        )
     
 @app.route('/weather', methods=['GET'])
 def getWeather():
