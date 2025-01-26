@@ -2,6 +2,7 @@ import { Card, Flex, Heading, Text, Link } from "@radix-ui/themes";
 import { useState, useEffect, useCallback, useRef } from 'react';
 import './RoutesAnalysis.css';
 import WildfireRoutingMap from "./WildfireRoutingMap";
+import AlertsTab from "./AlertsTab";
 
 function RoutesAnalysis() {
   const alertCards = [
@@ -283,29 +284,7 @@ function RoutesAnalysis() {
       </Card>
 
       {/* Second Card - Alerts */}
-      <Card size="3" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
-        <Heading size="5" style={{ marginBottom: '1.5rem' }}>Latest Alerts and Guidelines</Heading>
-        
-        <Flex gap="4" wrap="wrap">
-          {alertCards.map((card, index) => (
-            <Link key={index} href={card.link} style={{ textDecoration: 'none', flex: '1 1 250px' }}>
-              <Card style={{ overflow: 'hidden', height: '300px' }}>
-                <div style={{ 
-                  height: '60%', 
-                  backgroundImage: `url(${card.image})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  marginBottom: '1rem'
-                }} />
-                <div style={{ padding: '0 1rem 1rem' }}>
-                  <Heading size="3" style={{ marginBottom: '0.5rem' }}>{card.title}</Heading>
-                  <Text size="2" color="gray">{card.description}</Text>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </Flex>
-      </Card>
+      <AlertsTab />
     </div>
   );
 }
