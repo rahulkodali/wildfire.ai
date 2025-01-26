@@ -201,140 +201,144 @@ function RoutesAnalysis() {
         <Flex gap="4" className="stack-layout">
           {/* Left section - Map and Search */}
           <div style={{ flex: '4', position: 'relative' }}>
-            {/* Search Input */}
+            {/* Search Inputs Container */}
             <div style={{
-              position: 'absolute',
-              top: '.5rem',
-              left: '58%',
-              transform: 'translateX(-50%)',
+              position: 'relative',
               width: 'calc(100% - 2rem)',
-              maxWidth: '770px',
-              zIndex: 9999
+              maxWidth: '1000px',
+              margin: '0',
+              marginBottom: '1rem',
+              zIndex: 9999,
+              display: 'flex',
+              gap: '3rem',
+              justifyContent: 'center'
             }}>
-              <div 
-              ref={searchContainerRef}
-              style={{
-                position: 'absolute',
-                top: '1.25rem',
-                left: '38%',
-                transform: 'translateX(-50%)',
-                width: 'calc(100% - 2rem)',
-                maxWidth: '770px',
-                zIndex: 9999,
-              }}
-            >
-              <input 
-                type="text"
-                value={searchFromQuery}
-                onChange={(e) => {
-                  setSearchFromQuery(e.target.value);
-                  searchFromAddress(e.target.value);
-                }}
-                onClick={() => setSearchFromQuery('')}
-                placeholder="Enter an address..."
-                className="map-search-input"
-              />
-              {searchFromResults.length > 0 && (
-                <Card style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  zIndex: 1000,
-                  width: '104%',
-                  marginTop: '0.5rem',
-                  paddingBottom: '1rem',
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  background: 'var(--gray-3)'
-                }}>
-                  <Flex direction="column" gap="1">
-                    {searchFromResults.map((result, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleFromAddressSelect(result)}
-                        className="search-result-item"
-                        style={{
-                          padding: '0.75rem',
-                          textAlign: 'left',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'var(--gray-12)',
-                          borderBottom: index < searchResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
-                        }}
-                      >
-                        {result.name}
-                      </button>
-                    ))}
-                  </Flex>
-                </Card>
-              )}
-              {/* Search Functionality */}
-              <input 
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  searchAddress(e.target.value);
-                }}
-                onClick={() => setSearchQuery('')}
-                placeholder="Enter an address..."
-                className="map-search-input"
-                style={{marginTop: '1.5rem'}}
-              />
-              {/* Search Results Dropdown */}
-              {searchResults.length > 0 && (
-                <Card style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  zIndex: 1000,
-                  width: '104%',
-                  marginTop: '0.5rem',
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  background: 'var(--gray-3)'
-                }}>
-                  <Flex direction="column" gap="1">
-                    {searchResults.map((result, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleAddressSelect(result)}
-                        className="search-result-item"
-                        style={{
-                          padding: '0.75rem',
-                          textAlign: 'left',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'var(--gray-12)',
-                          borderBottom: index < searchResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
-                        }}
-                      >
-                        {result.name}
-                      </button>
-                    ))}
-                  </Flex>
-                </Card>
-              )}
-            </div>
-              </div>
-              
-              {/* Map Placeholder */}
-              <div style={{ flex: '4' }}>
-              <div style={{ 
-                width: '100%',
-                height: '600px',
-                borderRadius: 'var(--radius-3)',
-                overflow: 'hidden'
-              }}>
-                <WildfireRoutingMap 
-                  routePolyline={routePolyline} 
-                  onLocationLoad={handleLocationLoad}
+              {/* From Location Input */}
+              <div style={{ flex: 1, position: 'relative' }}>
+                <input 
+                  type="text"
+                  value={searchFromQuery}
+                  onChange={(e) => {
+                    setSearchFromQuery(e.target.value);
+                    searchFromAddress(e.target.value);
+                  }}
+                  onClick={() => setSearchFromQuery('')}
+                  placeholder="Starting point..."
+                  className="map-search-input"
+                  style={{
+                    border: '1px solid var(--gray-6)',
+                    borderRadius: 'var(--radius-3)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 'var(--font-size-2)',
+                    color: 'var(--gray-12)'
+                  }}
                 />
+                {searchFromResults.length > 0 && (
+                  <Card style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    marginTop: '0.5rem',
+                    paddingBottom: '1rem',
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    background: 'var(--gray-3)'
+                  }}>
+                    <Flex direction="column" gap="1">
+                      {searchFromResults.map((result, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleFromAddressSelect(result)}
+                          className="search-result-item"
+                          style={{
+                            padding: '0.75rem',
+                            textAlign: 'left',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--gray-12)',
+                            borderBottom: index < searchFromResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
+                          }}
+                        >
+                          {result.name}
+                        </button>
+                      ))}
+                    </Flex>
+                  </Card>
+                )}
               </div>
+
+              {/* To Location Input */}
+              <div style={{ flex: 1, position: 'relative' }}>
+                <input 
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    searchAddress(e.target.value);
+                  }}
+                  onClick={() => setSearchQuery('')}
+                  placeholder="Destination..."
+                  className="map-search-input"
+                  style={{
+                    border: '1px solid var(--gray-6)',
+                    borderRadius: 'var(--radius-3)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 'var(--font-size-2)',
+                    color: 'var(--gray-12)'
+                  }}
+                />
+                {searchResults.length > 0 && (
+                  <Card style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    marginTop: '0.5rem',
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    background: 'var(--gray-3)'
+                  }}>
+                    <Flex direction="column" gap="1">
+                      {searchResults.map((result, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleAddressSelect(result)}
+                          className="search-result-item"
+                          style={{
+                            padding: '0.75rem',
+                            textAlign: 'left',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--gray-12)',
+                            borderBottom: index < searchResults.length - 1 ? '1px solid var(--gray-5)' : 'none'
+                          }}
+                        >
+                          {result.name}
+                        </button>
+                      ))}
+                    </Flex>
+                  </Card>
+                )}
+              </div>
+            </div>
+
+            {/* Map Component */}
+            <div style={{ 
+              width: '100%',
+              height: '600px',
+              borderRadius: 'var(--radius-3)',
+              overflow: 'hidden',
+              marginTop: '0'
+            }}>
+              <WildfireRoutingMap 
+                routePolyline={routePolyline} 
+                onLocationLoad={handleLocationLoad}
+              />
             </div>
           </div>
 
