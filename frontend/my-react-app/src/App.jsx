@@ -3,10 +3,11 @@ import "@radix-ui/themes/styles.css"
 import './App.css'
 import WildfireAnalysis from './WildfireAnalysis';
 import RoutesAnalysis from './RoutesAnalysis';
+import AddressSearch from './AddressSearch';
 import { useState, useEffect } from 'react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('routes');
+  const [activeTab, setActiveTab] = useState('address');
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -25,6 +26,19 @@ function App() {
     window.addEventListener('scroll', controlNavbar);
     return () => window.removeEventListener('scroll', controlNavbar);
   }, [lastScrollY]);
+
+  const getActiveComponent = () => {
+    switch (activeTab) {
+      case 'address':
+        return <AddressSearch />;
+      case 'routes':
+        return <RoutesAnalysis />;
+      case 'wildfire':
+        return <WildfireAnalysis />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <Theme appearance="dark" accentColor="tomato">
@@ -49,6 +63,12 @@ function App() {
             <Text size="5" weight="bold" style={{ color: 'var(--tomato-9)' }}>wildfire.</Text>
             <div style={{ display: 'flex', gap: '2rem' }}>
               <button 
+                onClick={() => setActiveTab('address')}
+                className={`nav-button ${activeTab === 'address' ? 'active' : ''}`}
+              >
+                Search by Address
+              </button>
+              <button 
                 onClick={() => setActiveTab('routes')}
                 className={`nav-button ${activeTab === 'routes' ? 'active' : ''}`}
               >
@@ -67,7 +87,7 @@ function App() {
 
       <div style={{ minHeight: '100vh', backgroundColor: 'var(--gray-1)', padding: '2rem', marginTop: '4rem' }}>
         <Container>
-          {activeTab === 'routes' ? <RoutesAnalysis /> : <WildfireAnalysis />}
+          {getActiveComponent()}
         </Container>
       </div>
     </Theme>

@@ -139,7 +139,55 @@ def route():
     else:
         return jsonify({"error": "Failed to get route", "status": call.status_code}), call.status_code
 
+@app.route('/weather', methods=['GET'])
+def getWeather():
+    # Get lat/lon from query parameters
+    lat = request.args.get('lat', type=float)
+    lon = request.args.get('lon', type=float)
+    
+    if lat is None or lon is None:
+        return jsonify({"error": "Missing lat or lon parameters"}), 400
 
+    # Define the OpenWeatherMap API URL
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid=d69a05b30d4da7fac23cc30def3b667c"
+    
+    # Make the API request
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        
+        def parse_wildfire_relevant_data(data):
+            temp_kelvin = data["main"].get("temp")
+            temp_fahrenheit = (temp_kelvin - 273.15) * 9 / 5 + 32
+            humidity = data["main"].get("humidity")
+            wind_speed = data["wind"].get("speed")
+            
+            wildfire_risk = 0
+            
+            if temp_fahrenheit > 60:
+                wildfire_risk += (temp_fahrenheit - 60) * 0.5  # +0.5 per degree over 60Â°F
+
+            if humidity < 40:
+                wildfire_risk += (40 - humidity) * 0.5  # +0.5 per percentage below 40%
+
+            if wind_speed > 5:
+                wildfire_risk += (wind_speed - 5) * 1.2  # +1.2 per mph over 5 mph
+
+            wildfire_risk = min(wildfire_risk, 100)
+            
+            return {
+                "temperature_fahrenheit": round(temp_fahrenheit, 2),
+                "humidity": humidity,
+                "wind_speed": wind_speed,
+                "wind_direction": data["wind"].get("deg"),
+                "wildfire_risk": round(wildfire_risk, 2),
+            }
+        
+        # Parse and return relevant data
+        return jsonify(parse_wildfire_relevant_data(data))
+    else:
+        return jsonify({"error": f"Failed to fetch weather data. Status code: {response.status_code}"}), response.status_code
 
 if __name__ == '__main__':
     initialize_predictor()

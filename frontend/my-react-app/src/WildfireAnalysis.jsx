@@ -30,7 +30,8 @@ function WildfireAnalysis() {
         lon,
         probability: data.probability,
         riskLevel: data.risk_level,
-        confidence: data.confidence
+        confidence: data.confidence,
+        satellite_image: data.satellite_image
       }]);
     } catch (error) {
       console.error('Error getting prediction:', error);
@@ -80,6 +81,25 @@ function WildfireAnalysis() {
                   <Flex direction="column" gap="3">
                     {predictions.toReversed().map((pred, index) => (
                       <Card key={index} style={{ backgroundColor: 'var(--gray-3)' }}>
+                        {/* Satellite Image */}
+                        <div style={{ 
+                          width: '100%',
+                          height: '150px',
+                          marginBottom: '1rem',
+                          borderRadius: 'var(--radius-2)',
+                          overflow: 'hidden'
+                        }}>
+                          <img 
+                            src={pred.satellite_image} 
+                            alt={`Satellite view of ${pred.lat}, ${pred.lon}`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                          />
+                        </div>
+
                         <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
                           <strong>Location:</strong>
                           <Text color="gray"> {pred.lat.toFixed(4)}, {pred.lon.toFixed(4)}</Text>

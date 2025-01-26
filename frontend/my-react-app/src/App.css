@@ -92,3 +92,29 @@ a[href] [data-radix-card] {
 .nav-button:focus {
   outline: none;
 }
+
+.search-result-item {
+  transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+  background-color: var(--gray-4);
+}
+
+.search-result-item:focus {
+  outline: none;
+  background-color: var(--gray-4);
+}
+
+.search-result-item:active {
+  background-color: var(--gray-5);
+}
+
+.map-style-button:hover {
+  background-color: var(--gray-4) !important;
+  color: white !important;
+}
+
+.map-style-button.active:hover {
+  background-color: var(--tomato-10) !important;
+}

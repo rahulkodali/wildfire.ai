@@ -19,7 +19,7 @@ if (!hasWebGL()) {
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZGFrc2hpbmQiLCJhIjoiY202Y20zdzJqMGx2OTJrcTNkcGFtb2cwayJ9.s7CG8iwMwrMq6Br2C2RtMg';
 
-function WildfirePredictionMap({ predictions, onLocationSelect, isLoading }) {
+function WildfirePredictionMap({ predictions, onLocationSelect, isLoading, center, zoom }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]);
@@ -66,9 +66,9 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading }) {
     try {
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/satellite-streets-v12',  // Use satellite style with streets/labels
-        center: [-118.2437, 34.0522], // Los Angeles
-        zoom: 10,
+        style: 'mapbox://styles/mapbox/satellite-streets-v12',
+        center: center || [-118.2437, 34.0522], // Los Angeles by default
+        zoom: zoom || 10,
         preserveDrawingBuffer: true,
         failIfMajorPerformanceCaveat: false,
         trackResize: true
@@ -78,22 +78,6 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading }) {
       mapInstance.on('load', () => {
         map.current = mapInstance;
         setIsMapLoaded(true);
-
-        // Hide all labels except city names
-        const layers = mapInstance.getStyle().layers;
-        for (const layer of layers) {
-          if (layer.type === 'symbol') {
-            if (!layer.id.includes('city') && !layer.id.includes('settlement')) {
-              mapInstance.setLayoutProperty(layer.id, 'visibility', 'none');
-            }
-          }
-        }
-
-        // Adjust city label visibility
-        mapInstance.setLayoutProperty('settlement-major-label', 'text-size', 14);
-        mapInstance.setLayoutProperty('settlement-major-label', 'text-color', '#ffffff');
-        mapInstance.setLayoutProperty('settlement-major-label', 'text-halo-color', 'rgba(0, 0, 0, 0.75)');
-        mapInstance.setLayoutProperty('settlement-major-label', 'text-halo-width', 2);
       });
 
       // Add click handler
@@ -120,15 +104,6 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading }) {
         tempMarker.remove();
       });
 
-      // Add navigation controls
-      mapInstance.addControl(new mapboxgl.NavigationControl());
-
-      // Add scale control
-      mapInstance.addControl(new mapboxgl.ScaleControl({
-        maxWidth: 100,
-        unit: 'imperial'
-      }));
-
       // Handle WebGL context loss
       mapInstance.on('webglcontextlost', (e) => {
         e.preventDefault();
@@ -148,7 +123,19 @@ function WildfirePredictionMap({ predictions, onLocationSelect, isLoading }) {
       console.error('Map initialization error:', error);
       setMapError('Failed to initialize map. Please check your browser settings.');
     }
-  }, [onLocationSelect]);
+  }, [onLocationSelect, center, zoom]);
+
+  // Update map center and zoom when they change
+  useEffect(() => {
+    if (!map.current || !isMapLoaded || !center || !zoom) return;
+
+    map.current.flyTo({
+      center: center,
+      zoom: zoom,
+      duration: 2000,
+      essential: true
+    });
+  }, [center, zoom, isMapLoaded]);
 
   // Update markers when predictions change
   useEffect(() => {

@@ -55,65 +55,108 @@ function AddressSearch() {
   }, []);
 
   const getPrediction = useCallback(async (lat, lon) => {
+    setIsPredicting(true);
     try {
-      setIsPredicting(true);
-      const response = await fetch('http://localhost:5001/predict', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          latitude: lat,
-          longitude: lon
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get prediction');
-      }
-
-      const data = await response.json();
-      const newPrediction = {
-        lat,
-        lon,
-        probability: data.probability,
-        riskLevel: data.risk_level,
-        confidence: data.confidence,
-        satellite_image: data.satellite_image
-      };
-      setPrediction(newPrediction);
-      setPredictions([newPrediction]); // Update map markers
+        console.log('Fetching data for:', { lat, lon });
+        
+        // Fetch both prediction and weather data in parallel
+        const [predictionResponse, weatherResponse] = await Promise.all([
+          fetch('http://localhost:5001/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude: lat, longitude: lon })
+          }),
+          fetch(`http://localhost:5001/weather?lat=${lat}&lon=${lon}`)
+        ]);
+  
+        if (!predictionResponse.ok) {
+          throw new Error(`Prediction request failed: ${predictionResponse.status}`);
+        }
+        if (!weatherResponse.ok) {
+          throw new Error(`Weather request failed: ${weatherResponse.status}`);
+        }
+  
+        const predictionData = await predictionResponse.json();
+        const weatherData = await weatherResponse.json();
+  
+        const newPrediction = {
+          lat,
+          lon,
+          probability: predictionData.probability,
+          riskLevel: predictionData.risk_level,
+          confidence: predictionData.confidence,
+          satellite_image: predictionData.satellite_image,
+          // Add weather data
+          temperature: weatherData.temperature_fahrenheit,
+          humidity: weatherData.humidity,
+          windSpeed: weatherData.wind_speed,
+          windDirection: weatherData.wind_direction,
+          weatherRisk: weatherData.wildfire_risk
+        };
+  
+        setPrediction(newPrediction);
+        setPredictions([newPrediction]); // For map markers
     } catch (error) {
-      console.error('Error getting prediction:', error);
+    console.error('Error fetching data:', error);
     } finally {
-      setIsPredicting(false);
+    setIsPredicting(false);
     }
   }, []);
 
-  const handleAddressSelect = useCallback((result) => {
-    const [lon, lat] = result.coordinates;
-    setSearchResults([]); // Clear search results
-    setSearchQuery(result.name); // Update search input
-    
-    // Set map center and zoom based on the selected location
+  const handleAddressSelect = async (feature) => {
+    const [lon, lat] = feature.coordinates;
     setMapCenter([lon, lat]);
+    setMapZoom(14);
+    setSearchResults([]);
+    setSearchQuery(feature.name);
+    setIsPredicting(true);
     
-    // If we have a bounding box, calculate appropriate zoom level
-    if (result.bbox) {
-      const [minLon, minLat, maxLon, maxLat] = result.bbox;
-      const latDiff = Math.abs(maxLat - minLat);
-      const lonDiff = Math.abs(maxLon - minLon);
-      const maxDiff = Math.max(latDiff, lonDiff);
+    try {
+      console.log('Fetching data for:', { lat, lon });
       
-      // Rough calculation for zoom level based on bounding box size
-      const zoom = Math.floor(14 - Math.log2(maxDiff * 10));
-      setMapZoom(Math.min(Math.max(zoom, 10), 16)); // Clamp between 10 and 16
-    } else {
-      setMapZoom(14); // Default zoom level for addresses without bbox
+      // Fetch both prediction and weather data in parallel
+      const [predictionResponse, weatherResponse] = await Promise.all([
+        fetch('http://localhost:5001/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latitude: lat, longitude: lon })
+        }),
+        fetch(`http://localhost:5001/weather?lat=${lat}&lon=${lon}`)
+      ]);
+
+      if (!predictionResponse.ok) {
+        throw new Error(`Prediction request failed: ${predictionResponse.status}`);
+      }
+      if (!weatherResponse.ok) {
+        throw new Error(`Weather request failed: ${weatherResponse.status}`);
+      }
+
+      const predictionData = await predictionResponse.json();
+      const weatherData = await weatherResponse.json();
+
+      const newPrediction = {
+        lat,
+        lon,
+        probability: predictionData.probability,
+        riskLevel: predictionData.risk_level,
+        confidence: predictionData.confidence,
+        satellite_image: predictionData.satellite_image,
+        // Add weather data
+        temperature: weatherData.temperature_fahrenheit,
+        humidity: weatherData.humidity,
+        windSpeed: weatherData.wind_speed,
+        windDirection: weatherData.wind_direction,
+        weatherRisk: weatherData.wildfire_risk
+      };
+
+      setPrediction(newPrediction);
+      setPredictions([newPrediction]); // For map markers
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsPredicting(false);
     }
-    
-    getPrediction(lat, lon);
-  }, [getPrediction]);
+  };
 
   return (
     <Card size="3" style={{ padding: '1.5rem' }}>
@@ -243,10 +286,45 @@ function AddressSearch() {
                       <strong>Risk Level:</strong>
                       <Text color={prediction.probability > 0.5 ? 'tomato' : 'green'}> {prediction.riskLevel}</Text>
                     </Text>
-                    <Text as="div" size="2">
+                    <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
                       <strong>Confidence:</strong>
                       <Text color="gray"> {(prediction.confidence * 100).toFixed(1)}%</Text>
                     </Text>
+
+                    {/* Weather Information */}
+                    {prediction.temperature !== undefined && (
+                      <div style={{ 
+                        backgroundColor: 'var(--gray-4)',
+                        borderRadius: 'var(--radius-3)'
+                      }}>
+                        
+                        <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
+                          <strong>Temperature:</strong>
+                          <Text color="gray"> {prediction.temperature?.toFixed(1)}°F</Text>
+                        </Text>
+                        
+                        {prediction.humidity !== undefined && (
+                          <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
+                            <strong>Humidity:</strong>
+                            <Text color="gray"> {prediction.humidity}%</Text>
+                          </Text>
+                        )}
+                        
+                        {prediction.windSpeed !== undefined && (
+                          <Text as="div" size="2" style={{ marginBottom: '0.5rem' }}>
+                            <strong>Wind Speed:</strong>
+                            <Text color="gray"> {prediction.windSpeed} mph</Text>
+                          </Text>
+                        )}
+                        
+                        {prediction.weatherRisk !== undefined && (
+                          <Text as="div" size="2">
+                            <strong>Weather-based Risk:</strong>
+                            <Text color={prediction.weatherRisk > 50 ? 'tomato' : 'green'}> {prediction.weatherRisk}%</Text>
+                          </Text>
+                        )}
+                      </div>
+                    )}
                   </Card>
                 </div>
               )}
