@@ -36,8 +36,16 @@ function AlertsTab() {
         if (activeView === 'updates') {
             const fetchUpdates = async () => {
                 try {
-                    const lat = 34.0522;
-                    const lon = -118.2437;
+                    const { latitude: lat, longitude: lon } = await new Promise((resolve, reject) => {
+                        if (!navigator.geolocation) {
+                            reject(new Error('Geolocation is not supported by your browser'));
+                            return;
+                        }
+                        navigator.geolocation.getCurrentPosition(
+                            position => resolve(position.coords),
+                            error => reject(error)
+                        );
+                    });
 
                     // Updated URL to match the backend endpoint
                     const response = await fetch(`http://127.0.0.1:5001/fire-updates?lat=${lat}&lon=${lon}`);

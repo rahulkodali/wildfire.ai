@@ -50,6 +50,8 @@ function RoutesAnalysis() {
   const [estimatedMinutes, setEstimatedMinutes] = useState(0);
   const [distance, setDistance] = useState(0);
   const [isToggleOn, setIsToggleOn] = useState(true);
+  const [destinationCity, setDestinationCity] = useState('');
+  const [isCityTransitioning, setIsCityTransitioning] = useState(false);
 
   const handleToggle = () => {
     setIsToggleOn(!isToggleOn);
@@ -223,6 +225,10 @@ function RoutesAnalysis() {
     setSearchResults([]);
     setSearchQuery(result.name);
     setMapCenter([lon, lat]);
+    // Extract city name from the result
+    const addressParts = result.name.split(',');
+    const city = addressParts[0]?.trim() || addressParts[0]?.trim() || 'destination';
+    setDestinationCity(city);
     
     if (result.bbox) {
       const [minLon, minLat, maxLon, maxLat] = result.bbox;
@@ -566,7 +572,13 @@ function RoutesAnalysis() {
 
               {/* Directions section - weighted to bottom */}
               <div style={{ marginTop: 'auto' }}>
-                <Heading size="2" style={{ marginBottom: '1rem' }}>Directions to Palisades</Heading>
+                <Heading size="2" style={{ 
+                  marginBottom: '1rem',
+                  opacity: isCityTransitioning ? 0 : 1,
+                  transition: 'opacity 0.15s ease-in-out'
+                }}>
+                  Directions to {destinationCity || 'Destination'}
+                </Heading>
                 <Flex direction="column" gap="3">
                   {[
                     { arrow: "↑", text: "Continue straight on Rodeo Drive" },
