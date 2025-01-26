@@ -68,7 +68,14 @@ function App() {
             alignItems: 'center',
             padding: '1rem 0',
           }}>
-            <Text size="5" weight="bold" style={{ color: 'var(--tomato-9)' }}>wildfire.</Text>
+            <Text size="5" weight="bold" style={{ color: 'var(--tomato-9)' }}>
+              wildfire.
+              <span style={{ 
+                background: 'linear-gradient(90deg, #FFA500, #FF4500)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>ai</span>
+              </Text>
             <div style={{ display: 'flex', gap: '2rem' }}>
               <button 
                 onClick={() => handleTabChange('routes')}
