@@ -42,7 +42,32 @@ function WildfireRoutingMap({ routePolyline, onLocationLoad }) {
   const map = useRef(null);
   const [mapError, setMapError] = useState(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [isToggleOn, setIsToggleOn] = useState(false);
   const mapRef = useRef(null);
+
+  const handleToggle = () => {
+    setIsToggleOn(!isToggleOn);
+    console.log("Toggle state:", !isToggleOn);
+  };
+
+  const handleResetLocation = () => {
+    if (onLocationLoad) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          map.current.flyTo({
+            center: [longitude, latitude],
+            zoom: 14,
+            duration: 1500
+          });
+          onLocationLoad([latitude, longitude]);
+        },
+        (error) => {
+          console.error('Error getting location: ', error);
+        }
+      );
+    }
+  };
 
   // Initialize map
   useEffect(() => {
@@ -192,6 +217,92 @@ function WildfireRoutingMap({ routePolyline, onLocationLoad }) {
         ref={mapContainer} 
         style={mapStyles.container}
       />
+
+      {/* Controls Container */}
+      <div style={{
+        position: 'absolute',
+        bottom: '20px',
+        left: '20px',
+        zIndex: 1000,
+        background: 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(4px)',
+        padding: '4px',
+        borderRadius: '8px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px'
+      }}>
+        {/* Toggle Switch */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
+          background: 'rgba(0, 0, 0, 0.8)',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          width: '120px'
+        }}>
+          <span style={{ 
+            fontSize: '0.875rem', 
+            color: 'white',
+            fontWeight: '500',
+            minWidth: '52px'
+          }}>
+            {isToggleOn ? 'Wildfires' : 'Normal'}
+          </span>
+          <button
+            onClick={handleToggle}
+            style={{
+              width: '48px',
+              height: '24px',
+              borderRadius: '12px',
+              backgroundColor: isToggleOn ? 'var(--accent-9)' : 'var(--gray-5)',
+              position: 'relative',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+              padding: 0
+            }}
+          >
+            <div
+              style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                backgroundColor: 'white',
+                position: 'absolute',
+                top: '2px',
+                left: isToggleOn ? '26px' : '2px',
+                transition: 'left 0.2s'
+              }}
+            />
+          </button>
+        </div>
+
+        {/* Reset Location Button */}
+        <button
+          onClick={handleResetLocation}
+          style={{
+            background: 'rgba(0, 0, 0, 0.8)',
+            padding: '8px',
+            borderRadius: '6px',
+            border: 'none',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '36px',
+            height: '36px'
+          }}
+          title="Reset to Current Location"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 8l-4 4 4 4M8 12h8M12 21a9 9 0 100-18 9 9 0 000 18z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
 
       {mapError && (
         <div style={{

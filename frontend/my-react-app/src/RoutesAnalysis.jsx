@@ -42,6 +42,7 @@ function RoutesAnalysis() {
   const [mapZoom, setMapZoom] = useState(null);
   const [routePolyline, setRoutePolyline] = useState(null);
   const [fromLoc, setFromLoc] = useState([0, 0]);
+  const [currentLocation, setCurrentLocation] = useState([0, 0]);
 
 
   const getRoute = useCallback(async (coordA, coordB) => {
@@ -187,7 +188,7 @@ function RoutesAnalysis() {
 
   const handleLocationLoad = useCallback((location) => {
     console.log("Location received in RoutesAnalysis:", location);
-    setFromLoc(location);
+    setCurrentLocation(location);
     setSearchFromQuery("Current Location");
   }, []);
 
@@ -229,6 +230,7 @@ function RoutesAnalysis() {
                   setSearchFromQuery(e.target.value);
                   searchFromAddress(e.target.value);
                 }}
+                onClick={() => setSearchFromQuery('')}
                 placeholder="Enter an address..."
                 className="map-search-input"
               />
@@ -276,6 +278,7 @@ function RoutesAnalysis() {
                   setSearchQuery(e.target.value);
                   searchAddress(e.target.value);
                 }}
+                onClick={() => setSearchQuery('')}
                 placeholder="Enter an address..."
                 className="map-search-input"
                 style={{marginTop: '1.5rem'}}
