@@ -11,6 +11,8 @@ import random
 import polyline
 import google.generativeai as genai
 
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -18,6 +20,11 @@ CORS(app)  # Enable CORS for all routes
 # Initialize the predictor globally
 MODEL_PATH = 'models/final_model.h5'
 predictor = None
+
+# Get API keys from environment variables
+OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')
+OPENROUTE_API_KEY = os.getenv('OPENROUTE_API_KEY')
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
 def initialize_predictor():
     global predictor
@@ -101,16 +108,10 @@ def shape_fires():
 
 @app.route("/api/route", methods=["POST"])
 def route():
-    load_dotenv()
-
-    # schema POINT A, POINT B, COORDS OF POLYGON
     data = request.json
-
     pointA = data["point A"]
     pointB = data["point B"]
     polygon = data["polygon"]
-
-    # iterate/map thru and give a list of coods
 
     body = {
         "coordinates": [[pointA[0], pointA[1]], [pointB[0], pointB[1]]],
@@ -124,7 +125,7 @@ def route():
 
     headers = {
         "Accept": "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
-        "Authorization": "5b3ce3597851110001cf6248a2d2a8be92064aeda19139927e2415a6",
+        "Authorization": OPENROUTE_API_KEY,
         "Content-Type": "application/json; charset=utf-8",
     }
 
@@ -136,14 +137,10 @@ def route():
 
     if call.status_code == 200:
         response = call.json()
-
         encoded_polyline = response["routes"][0]["geometry"]
         directions = response["routes"][0]["segments"]
-
         decoded_polyline = polyline.decode(encoded_polyline)
-
         result = {"decoded_polyline": decoded_polyline, "directions": directions}
-
         return jsonify(result)
     else:
         return (
@@ -153,21 +150,15 @@ def route():
 
 @app.route("/api/route-normal", methods=["POST"])
 def route_normal():
-    load_dotenv()
-
-    # schema POINT A, POINT B, COORDS OF POLYGON
     data = request.json
-
     pointA = data["point A"]
     pointB = data["point B"]
-
-    # iterate/map thru and give a list of coods
 
     body = {"coordinates": [[pointA[0], pointA[1]], [pointB[0], pointB[1]]]}
 
     headers = {
         "Accept": "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
-        "Authorization": "5b3ce3597851110001cf6248a2d2a8be92064aeda19139927e2415a6",
+        "Authorization": OPENROUTE_API_KEY,
         "Content-Type": "application/json; charset=utf-8",
     }
 
@@ -179,15 +170,10 @@ def route_normal():
 
     if call.status_code == 200:
         response = call.json()
-
         encoded_polyline = response["routes"][0]["geometry"]
         directions = response["routes"][0]["segments"]
-
         decoded_polyline = polyline.decode(encoded_polyline)
-        print(encoded_polyline)
-
         result = {"decoded_polyline": decoded_polyline, "directions": directions}
-
         return jsonify(result)
     else:
         return (
@@ -197,17 +183,14 @@ def route_normal():
     
 @app.route('/weather', methods=['GET'])
 def getWeather():
-    # Get lat/lon from query parameters
     lat = request.args.get('lat', type=float)
     lon = request.args.get('lon', type=float)
     
     if lat is None or lon is None:
         return jsonify({"error": "Missing lat or lon parameters"}), 400
 
-    # Define the OpenWeatherMap API URL
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid=d69a05b30d4da7fac23cc30def3b667c"
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHER_API_KEY}"
     
-    # Make the API request
     response = requests.get(url)
     
     if response.status_code == 200:
@@ -222,13 +205,13 @@ def getWeather():
             wildfire_risk = 0
             
             if temp_fahrenheit > 60:
-                wildfire_risk += (temp_fahrenheit - 60) * 0.5  # +0.5 per degree over 60Â°F
+                wildfire_risk += (temp_fahrenheit - 60) * 0.5
 
             if humidity < 40:
-                wildfire_risk += (40 - humidity) * 0.5  # +0.5 per percentage below 40%
+                wildfire_risk += (40 - humidity) * 0.5
 
             if wind_speed > 5:
-                wildfire_risk += (wind_speed - 5) * 1.2  # +1.2 per mph over 5 mph
+                wildfire_risk += (wind_speed - 5) * 1.2
 
             wildfire_risk = min(wildfire_risk, 100)
             
@@ -240,7 +223,6 @@ def getWeather():
                 "wildfire_risk": round(wildfire_risk, 2),
             }
         
-        # Parse and return relevant data
         return jsonify(parse_wildfire_relevant_data(data))
     else:
         return jsonify({"error": f"Failed to fetch weather data. Status code: {response.status_code}"}), response.status_code
@@ -248,12 +230,10 @@ def getWeather():
 @app.route('/fire-updates', methods=['GET'])
 def get_fire_updates():
     try:
-        # Debug: Print request information
         print("=== Fire Updates Debug ===")
         print(f"Request received at /fire-updates")
         print(f"Request args: {request.args}")
         
-        # Get lat/lon from query parameters
         lat = request.args.get('lat', type=float)
         lon = request.args.get('lon', type=float)
         
@@ -263,12 +243,10 @@ def get_fire_updates():
             print("Error: Missing coordinates")
             return jsonify({"error": "Missing lat or lon parameters"}), 400
         
-        # Validate latitude and longitude ranges
         if not (-90 <= lat <= 90 and -180 <= lon <= 180):
             return jsonify({"error": "Invalid lat or lon values"}), 400
 
-        # Configure Gemini API (Replace with your key management system)
-        genai.configure(api_key="AIzaSyA6wJ0GIqVP7jMaPz-PQg8-ia-ArdURT68")
+        genai.configure(api_key=GOOGLE_API_KEY)
         model = genai.GenerativeModel("gemini-2.0-flash-exp")
         
         print("Making API call to Gemini...")
@@ -277,7 +255,6 @@ def get_fire_updates():
             f"Coordinates: latitude {lat}, longitude {lon}. Keep the response concise. No bullet points. Don't mention coordinates."
         )
         
-        # Ensure response text exists
         if not response or not hasattr(response, 'text'):
             return jsonify({"error": "Failed to fetch fire updates"}), 500
 

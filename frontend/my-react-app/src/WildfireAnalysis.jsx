@@ -3,7 +3,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import WildfirePredictionMap from './WildfirePredictionMap';
 import mapboxgl from 'mapbox-gl';
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiZGFrc2hpbmQiLCJhIjoiY202Y20zdzJqMGx2OTJrcTNkcGFtb2cwayJ9.s7CG8iwMwrMq6Br2C2RtMg';
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 function WildfireAnalysis() {
   const [predictions, setPredictions] = useState([]);
