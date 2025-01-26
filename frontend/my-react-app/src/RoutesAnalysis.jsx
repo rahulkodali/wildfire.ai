@@ -256,7 +256,12 @@ function RoutesAnalysis() {
       {/* First Card - Main Content */}
       <Card size="3" style={{ padding: '1.5rem', marginBottom: '3rem' }}>
         <Flex justify="between" align="center" style={{ marginBottom: '1rem' }}>
-          <Heading size="6">Pathfinder</Heading>
+          <Heading size="6">
+            Pathfinder
+            <span className={`ai-text ${isAnalyzingRoute ? 'visible' : 'hidden'}`}>
+              AI
+            </span>
+          </Heading>
           {routePolyline && (
             <Flex gap="2" align="center">
               <BrainCircuit size={24} color={'var(--accent-9)'}/>

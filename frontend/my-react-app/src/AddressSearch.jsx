@@ -161,7 +161,14 @@ function AddressSearch() {
   return (
     <Card size="3" style={{ padding: '1.5rem' }}>
       <Flex direction="column" gap="4">
-        <Heading size="6">Wildfire Prediction</Heading>
+        <Heading size="6">
+          <span>Wildfire Risk Prediction with </span>
+          <span style={{ 
+            background: 'linear-gradient(90deg, #FF4500, #FFA500)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>ML</span>
+        </Heading>
         
         <Flex style={{ gap: '4', position: 'relative' }}>
           {/* Left section - Map and Search */}

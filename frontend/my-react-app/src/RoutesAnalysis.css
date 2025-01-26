@@ -24,4 +24,34 @@
   .stack-layout {
     flex-direction: column;
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.ai-text {
+  background: linear-gradient(90deg, #FF4500, #FFA500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-left: 0.2rem;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  display: inline-block;
+}
+
+.ai-text.visible {
+  opacity: 1;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.ai-text.hidden {
+  opacity: 0;
+  animation: fadeOut 0.3s ease-out;
 } 

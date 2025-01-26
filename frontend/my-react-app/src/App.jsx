@@ -79,7 +79,7 @@ function App() {
                 onClick={() => setActiveTab('wildfire')}
                 className={`nav-button ${activeTab === 'wildfire' ? 'active' : ''}`}
               >
-                Wildfire Analysis
+                MultiView Risk Prediction
               </button>
             </div>
           </div>

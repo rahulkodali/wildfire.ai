@@ -74,11 +74,12 @@ a[href] [data-radix-card] {
   background: none;
   border: none;
   color: var(--gray-11);
-  font-size: 1rem;
-  padding: 0.5rem 1rem;
   cursor: pointer;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-3);
   transition: color 0.2s ease-in-out;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .nav-button:hover {

@@ -43,7 +43,14 @@ function WildfireAnalysis() {
   return (
     <Card size="3" style={{ padding: '1.5rem' }}>
       <Flex direction="column" gap="4">
-        <Heading size="6">Wildfire Risk Analysis</Heading>
+        <Heading size="6">
+          <span>MultiView Risk Prediction with </span>
+          <span style={{ 
+            background: 'linear-gradient(90deg, #FF4500, #FFA500)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>ML</span>
+        </Heading>
         
         <Flex gap="4">
           {/* Left section - Map */}
